@@ -4,7 +4,7 @@
 // Lee el token JWT del localStorage automaticamente.
 // ============================================================
 
-const API_BASE = "https://elejerseysshop-production.up.railway.app/api";
+const API_BASE = "/api";
 
 /**
  * Funcion base para fetch con manejo de errores y JWT.
