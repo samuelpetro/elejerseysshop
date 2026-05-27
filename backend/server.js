@@ -1,6 +1,6 @@
 // ============================================================
-// server.js UNIFICADO - Backend + Frontend
-// Railway sirve API y frontend juntos
+// server.js UNIFICADO - EleJeserys + Tienda Deportiva
+// Puerto: 3000 | Frontend: / (tienda) y /panel/ (admin)
 // ============================================================
 const express = require("express");
 const cors = require("cors");
@@ -11,11 +11,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Imagenes
+// Imagenes compartidas
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-// Frontend admin panel
-app.use(express.static(path.join(__dirname, "../frontend/panel")));
+// EleJeserys frontend (tienda online)
+app.use(express.static(path.join(__dirname, "../frontend/tienda")));
+
+// Tienda Deportiva frontend (panel admin)
+app.use("/panel", express.static(path.join(__dirname, "../frontend/panel")));
 
 // ============================================================
 // API ROUTES
@@ -31,26 +34,19 @@ app.use("/api/ventas",      require("./routes/ventas"));
 app.use("/api/dashboard",   require("./routes/dashboard"));
 app.use("/api/devoluciones", require("./routes/devoluciones"));
 
-// Ruta raíz: verifica que la API funciona
-app.get("/", (req, res) => {
-  res.json({ mensaje: "API funcionando", docs: "/api/productos" });
-});
-
-// Servir frontend solo si existe el archivo
-const frontendPath = path.join(__dirname, "..", "frontend", "panel", "index.html");
-const fs = require("fs");
+// Catch-all: EleJeserys SPA
 app.get("*", (req, res) => {
-  if (req.path.startsWith("/api")) return;
-  if (fs.existsSync(frontendPath)) return res.sendFile(frontendPath);
-  res.status(200).json({ mensaje: "API activa", frontend: "no encontrado" });
+  res.sendFile(path.join(__dirname, "../frontend/tienda/index.html"));
 });
 
 app.use((err, req, res, next) => {
-  console.error("ERROR:", err.message);
+  console.error(err.stack);
   res.status(500).json({ error: "Error interno." });
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Servidor en puerto ${PORT}`);
+  console.log(`\nServidor UNIFICADO en http://localhost:${PORT}`);
+  console.log(`  Tienda: http://localhost:${PORT}`);
+  console.log(`  Panel:  http://localhost:${PORT}/panel/login.html`);
 });
