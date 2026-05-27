@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tienda Deportiva | Iniciar Sesión</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* Botón de tema específico para login */
+    #theme-toggle-login {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid var(--border);
+      background: var(--bg2);
+      color: var(--text);
+    }
+    #theme-toggle-login:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+  </style>
+</head>
+<body>
+
+<button id="theme-toggle-login" onclick="toggleTheme()">
+  💡 Claro
+</button>
+
+<div class="auth-page">
+  <div class="auth-card">
+
+    <!-- Logo -->
+    <div class="auth-logo">
+      <div class="brand">⚡ SportStore</div>
+      <div class="brand-sub">Sistema de Gestión</div>
+    </div>
+
+    
+
+    <!-- Error global -->
+    <div class="auth-error" id="auth-error"></div>
+
+    <!-- ===== FORM LOGIN ===== -->
+    <form class="auth-form active" id="form-login" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label class="form-label">Usuario</label>
+        <input type="text" class="form-control" id="login-username"
+               placeholder="admin" required autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contraseña</label>
+        <input type="password" class="form-control" id="login-password"
+               placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn btn-primary auth-submit" id="btn-login">
+        Entrar al Sistema
+      </button>
+    </form>
+
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+  // ==== THEME LOGIC ====
+  function initTheme() {
+    const isLight = localStorage.getItem("td_theme") === "light";
+    if (isLight) applyTheme("light");
+  }
+
+  function toggleTheme() {
+    const current = document.documentElement.getAttribute("data-theme");
+    if (current === "light") applyTheme("dark");
+    else applyTheme("light");
+  }
+
+  function applyTheme(theme) {
+    const btn = document.getElementById("theme-toggle-login");
+    if (theme === "light") {
+      document.documentElement.setAttribute("data-theme", "light");
+      localStorage.setItem("td_theme", "light");
+      if (btn) btn.innerHTML = "🌙 Oscuro";
+    } else {
+      document.documentElement.removeAttribute("data-theme");
+      localStorage.setItem("td_theme", "dark");
+      if (btn) btn.innerHTML = "💡 Claro";
+    }
+  }
+
+  // Inicializar tema al cargar
+  initTheme();
+
+  // Si ya hay sesion activa, ir al dashboard
+  if (localStorage.getItem("td_token")) {
+    window.location.href = "index.html";
+  }
+
+  function switchTab(tab) {
+    document.querySelectorAll(".auth-tab").forEach(t => t.classList.toggle("active", tab === "login"));
+    document.getElementById("form-login").classList.toggle("active", tab === "login");
+    showError(""); // limpiar errores al cambiar tab
+  }
+
+  function showError(msg) {
+    const el = document.getElementById("auth-error");
+    el.textContent = msg;
+    el.classList.toggle("show", !!msg);
+  }
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    const btn = document.getElementById("btn-login");
+    btn.textContent = "Entrando...";
+    btn.disabled = true;
+    showError("");
+
+    try {
+      const data = await API.login({
+        username: document.getElementById("login-username").value.trim(),
+        password: document.getElementById("login-password").value,
+      });
+
+      // Guardar token y datos del usuario en localStorage
+      localStorage.setItem("td_token", data.token);
+      localStorage.setItem("td_user", JSON.stringify(data.usuario));
+
+      // Redirigir al dashboard principal
+      window.location.href = "index.html";
+    } catch (err) {
+      showError(err.message || "Error al iniciar sesión.");
+      btn.textContent = "Entrar al Sistema";
+      btn.disabled = false;
+    }
+  }
+
+</script>
+</body>
+</html>

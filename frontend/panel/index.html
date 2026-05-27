@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SportStore | Panel de Gestión</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- Toast notifications container -->
+<div id="toast-container"></div>
+
+<!-- ============================================================
+     APP SHELL: sidebar + contenido principal
+     ============================================================ -->
+<div class="app-shell">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-text">⚡ SportStore</div>
+      <div class="logo-sub">Gestión Integral</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-label admin-only">Principal</div>
+      <div class="nav-item admin-only active" data-page="dashboard" onclick="navigateTo('dashboard')"><span class="nav-icon">📊</span> Dashboard</div>
+
+      <div class="nav-label">Operaciones</div>
+      
+      <!-- Grupo Tienda -->
+      <div class="nav-group" id="group-tienda">
+        <div class="nav-item nav-item-parent" onclick="toggleNavGroup('group-tienda')">
+          <span class="nav-icon">🏪</span> Tienda <span class="nav-arrow">▶</span>
+        </div>
+        <div class="submenu">
+          <div class="nav-item" data-page="ventas" onclick="navigateTo('ventas')"><span class="nav-icon">🛒</span> Caja (POS)</div>
+          <div class="nav-item" data-page="historial" onclick="navigateTo('historial')"><span class="nav-icon">📋</span> Historial</div>
+          <div class="nav-item" data-page="pendientes" onclick="navigateTo('pendientes')" style="display:flex;align-items:center;justify-content:space-between">
+            <span><span class="nav-icon">⏳</span> Pendientes</span>
+            <span id="badge-pendientes" style="display:none;background:var(--danger);color:white;font-size:10px;padding:2px 6px;border-radius:10px;font-weight:bold;margin-left:5px">0</span>
+          </div>
+          <div class="nav-item" data-page="devoluciones" onclick="navigateTo('devoluciones')"><span class="nav-icon">↪️</span> Devoluciones</div>
+        </div>
+      </div>
+
+      <!-- Grupo Productos -->
+      <div class="nav-group admin-only" id="group-productos">
+        <div class="nav-item nav-item-parent" onclick="toggleNavGroup('group-productos')">
+          <span class="nav-icon">📦</span> Almacén <span class="nav-arrow">▶</span>
+        </div>
+        <div class="submenu">
+          <div class="nav-item admin-only" data-page="inventario" onclick="navigateTo('inventario')"><span class="nav-icon">👕</span> Productos</div>
+          <div class="nav-item admin-only" data-page="categorias" onclick="navigateTo('categorias')"><span class="nav-icon">🏷️</span> Categorías</div>
+          <div class="nav-item admin-only" data-page="compras" onclick="navigateTo('compras')"><span class="nav-icon">📥</span> Compras</div>
+        </div>
+      </div>
+
+      <div class="nav-label admin-only">Administración</div>
+      <!-- Grupo Admin -->
+      <div class="nav-group admin-only" id="group-admin">
+        <div class="nav-item nav-item-parent" onclick="toggleNavGroup('group-admin')">
+          <span class="nav-icon">⚙️</span> Gestión <span class="nav-arrow">▶</span>
+        </div>
+        <div class="submenu">
+          <div class="nav-item admin-only" data-page="usuarios" onclick="navigateTo('usuarios')"><span class="nav-icon">👤</span> Usuarios</div>
+          <div class="nav-item admin-only" data-page="clientes" onclick="navigateTo('clientes')"><span class="nav-icon">👥</span> Clientes</div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="user-avatar">A</div>
+        <div>
+          <div class="user-name" id="user-name">Admin</div>
+          <div class="user-role" id="user-role">admin</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="logout()">Cerrar Sesión</button>
+    </div>
+  </aside>
+
+  <!-- ===== CONTENIDO PRINCIPAL ===== -->
+  <div class="main-content">
+
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="topbar-title" id="page-title">Dashboard</div>
+      <div class="topbar-right">
+        <span class="text-muted" style="font-size:12px" id="topbar-date"></span>
+        <button id="theme-toggle" class="btn btn-secondary btn-sm" onclick="toggleTheme()" title="Cambiar tema" style="margin-left: 10px;">💡 Claro</button>
+      </div>
+    </div>
+
+    <!-- Body con las secciones (solo una visible a la vez) -->
+    <div class="page-body">
+
+      <!-- =====================================================
+           SECCION: DASHBOARD
+           ===================================================== -->
+      <div id="section-dashboard" class="page-section">
+        <div class="dashboard-toolbar">
+          <div class="dashboard-periodos">
+            <button class="btn btn-sm btn-primary" id="btn-diario" onclick="cargarDashboard('diario')">Hoy</button>
+            <button class="btn btn-sm btn-secondary" id="btn-semanal" onclick="cargarDashboard('semanal')">Semanal</button>
+            <button class="btn btn-sm btn-secondary" id="btn-mensual" onclick="cargarDashboard('mensual')">Mensual</button>
+            <button class="btn btn-sm btn-secondary" id="btn-anual" onclick="cargarDashboard('anual')">Anual</button>
+          </div>
+          <div class="dashboard-filtros">
+            <input type="date" id="dash-inicio" class="form-control" onchange="cargarDashboard('personalizado')">
+            <input type="date" id="dash-fin" class="form-control" onchange="cargarDashboard('personalizado')">
+            <select id="dash-filtro-categoria" class="form-control" onchange="onCambioCategoriaDashboard()">
+              <option value="">Todas las categorías</option>
+            </select>
+            <select id="dash-filtro-subcategoria" class="form-control" onchange="onCambioSubcategoriaDashboard()">
+              <option value="">Todas las subcategorías</option>
+            </select>
+            <select id="dash-filtro-producto" class="form-control" onchange="cargarDashboard()">
+              <option value="">Todos los productos</option>
+            </select>
+          </div>
+          <button class="btn btn-accent2 btn-sm" onclick="descargarPDFGeneral()" style="white-space:nowrap; align-self:center;">📋 Reporte General</button>
+        </div>
+
+        <div class="dashboard-stack">
+          <details class="dashboard-panel" open>
+            <summary><span>Dashboard Ventas</span><button class="btn btn-sm btn-secondary" onclick="event.preventDefault(); descargarPDF('ventas')">PDF</button></summary>
+            <div class="dashboard-panel-body">
+              <div class="stats-grid" id="stats-grid"><div class="loading"><div class="spinner"></div> Cargando ventas...</div></div>
+              <div id="dashboard-tables"></div>
+            </div>
+          </details>
+          <details class="dashboard-panel" open>
+            <summary><span>Dashboard Compras a Proveedor</span><button class="btn btn-sm btn-secondary" onclick="event.preventDefault(); descargarPDF('compras')">PDF</button></summary>
+            <div class="dashboard-panel-body">
+              <div class="stats-grid" id="stats-compras-grid"><div class="loading"><div class="spinner"></div> Cargando compras...</div></div>
+              <div id="dashboard-compras-tables"></div>
+            </div>
+          </details>
+          <details class="dashboard-panel" open>
+            <summary><span>Dashboard Devoluciones</span><button class="btn btn-sm btn-secondary" onclick="event.preventDefault(); descargarPDF('devoluciones')">PDF</button></summary>
+            <div class="dashboard-panel-body">
+              <div class="stats-grid" id="stats-devoluciones-grid"><div class="loading"><div class="spinner"></div> Cargando devoluciones...</div></div>
+              <div id="dashboard-devoluciones-tables"></div>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           SECCION: INVENTARIO
+           ===================================================== -->
+      <div id="section-inventario" class="page-section hidden">
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">📦 Productos</div>
+            <div style="display:flex;gap:8px">
+              <input type="text" class="form-control" id="search-producto"
+                     placeholder="Buscar producto..." style="width:200px"
+                     oninput="filtrarProductos()">
+              <button class="btn btn-primary btn-sm" onclick="abrirModalProducto()">+ Nuevo</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Categoría</th>
+                  <th>Precio</th>
+                  <th>Stock</th>
+                  <th>Costo Prom</th>
+                  <th>Costo Total</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-productos">
+                <tr><td colspan="7"><div class="loading"><div class="spinner"></div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           SECCION: PUNTO DE VENTA
+           ===================================================== -->
+      <div id="section-ventas" class="page-section hidden">
+        <div style="display:grid;grid-template-columns:1fr 380px;gap:20px">
+
+          <!-- Catalogo de productos -->
+          <div class="table-card">
+            <div class="table-header">
+              <div class="table-title">Productos</div>
+              <input type="text" class="form-control" id="search-venta-producto"
+                     placeholder="Buscar..." style="width:180px"
+                     oninput="filtrarProductosVenta()">
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Producto</th><th>Precio</th><th>Stock</th><th></th></tr>
+                </thead>
+                <tbody id="tabla-productos-venta">
+                  <tr><td colspan="4"><div class="loading"><div class="spinner"></div></div></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Carrito / resumen -->
+          <div>
+            <div class="table-card" style="position:sticky;top:80px">
+              <div class="table-header">
+                <div class="table-title">🛒 Carrito</div>
+                <button class="btn btn-secondary btn-sm" onclick="limpiarCarrito()">Limpiar</button>
+              </div>
+              <div style="padding:12px 16px;max-height:320px;overflow-y:auto">
+                <div id="carrito-items">
+                  <div class="text-muted" style="text-align:center;padding:20px;font-size:13px">
+                    Agrega productos al carrito
+                  </div>
+                </div>
+              </div>
+              <div style="padding:12px 16px;border-top:1px solid var(--border)">
+                <div class="form-group mb-1">
+                  <label class="form-label">Cliente (opcional)</label>
+                  <select class="form-control" id="venta-cliente">
+                    <option value="">Sin cliente registrado</option>
+                  </select>
+                </div>
+                <div class="form-group mb-1" style="display:flex;gap:8px;align-items:end">
+                  <div style="flex:1"><label class="form-label">Descuento</label><input type="number" class="form-control" id="venta-descuento" placeholder="0" value="0" min="0" oninput="renderCarrito()"></div>
+                  <div style="width:80px"><label class="form-label">%</label><select class="form-control" id="venta-descuento-tipo" onchange="renderCarrito()"><option value="monto">$</option><option value="porcentaje">%</option></select></div>
+                </div>
+                <div class="cart-summary">
+                  <div>
+                    <div class="cart-total-label">Total</div>
+                    <div class="cart-total-value" id="cart-total">$0</div>
+                  </div>
+                  <button class="btn btn-primary" onclick="procesarVenta()" id="btn-vender">
+                    Cobrar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           SECCION: CLIENTES
+           ===================================================== -->
+      <div id="section-clientes" class="page-section hidden">
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">👥 Clientes</div>
+            <button class="btn btn-primary btn-sm" onclick="abrirModalCliente()">+ Nuevo Cliente</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>ID</th><th>Nombre</th><th>Teléfono</th><th>Email</th><th>Acciones</th></tr>
+              </thead>
+              <tbody id="tabla-clientes">
+                <tr><td colspan="5"><div class="loading"><div class="spinner"></div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           SECCION: HISTORIAL DE VENTAS
+           ===================================================== -->
+      <div id="section-historial" class="page-section hidden">
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">📋 Historial de Ventas</div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>#</th><th>Tipo</th><th>Fecha</th><th>Cliente</th><th>Total</th><th>Ver</th></tr>
+              </thead>
+              <tbody id="tabla-historial">
+                <tr><td colspan="6"><div class="loading"><div class="spinner"></div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           SECCION: USUARIOS (CRUD)
+           ===================================================== -->
+      <div id="section-usuarios" class="page-section hidden">
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">⚙️ Gestión de Usuarios</div>
+            <div style="display:flex;gap:8px">
+              <input type="text" class="form-control" id="search-usuario"
+                     placeholder="Buscar por cédula o nombre..." style="width:220px"
+                     oninput="filtrarUsuarios()">
+              <button class="btn btn-secondary btn-sm" onclick="abrirModalUsuario('empleado')">+ Empleado</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Cédula</th><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr>
+              </thead>
+              <tbody id="tabla-usuarios">
+                <tr><td colspan="7"><div class="loading"><div class="spinner"></div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           SECCION: VENTAS PENDIENTES
+           ===================================================== -->
+      <div id="section-pendientes" class="page-section hidden">
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">⏳ Pedidos pendientes de aprobación</div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>#</th><th>Cliente</th><th>Contacto</th><th>Total</th><th>Fecha</th><th>Acciones</th></tr>
+              </thead>
+              <tbody id="tabla-pendientes">
+                <tr><td colspan="6"><div class="loading"><div class="spinner"></div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           SECCION: CATEGORÍAS
+           ===================================================== -->
+      <div id="section-categorias" class="page-section hidden">
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">🏷️ Categorías</div>
+            <button class="btn btn-primary btn-sm" onclick="abrirModalCategoria()">+ Nueva</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>Nombre</th><th>Slug</th><th>Padre</th><th>Acciones</th></tr></thead>
+              <tbody id="tabla-categorias-panel"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           SECCION: COMPRAS
+           ===================================================== -->
+      <div id="section-compras" class="page-section hidden">
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">📥 Compras a proveedores</div>
+            <div style="display:flex;gap:8px">
+              <input type="text" class="form-control" id="search-compra" placeholder="Buscar producto..." style="width:200px" oninput="filtrarCompras()">
+              <select class="form-control" id="filtro-categoria-compra" style="width:160px" onchange="filtrarCompras()"><option value="">Todas las categorías</option></select>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Producto</th><th>Categoría</th><th>Stock</th><th>Costo Prom</th><th>Tot. Compra</th><th></th></tr></thead>
+              <tbody id="tabla-compras"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           SECCION: DEVOLUCIONES
+           ===================================================== -->
+      <div id="section-devoluciones" class="page-section hidden">
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">↪️ Devoluciones de Venta</div>
+            <button class="btn btn-primary btn-sm" onclick="abrirModalNuevaDevolucion()">Registrar Devolución</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>ID Dev.</th><th>Venta Padre</th><th>Fecha</th><th>Motivo</th><th>Total</th><th>Estado</th><th>Acciones</th></tr>
+              </thead>
+              <tbody id="tabla-devoluciones">
+                <tr><td colspan="7"><div class="loading"><div class="spinner"></div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /page-body -->
+  </div><!-- /main-content -->
+</div><!-- /app-shell -->
+
+
+<!-- ============================================================
+     MODALES
+     ============================================================ -->
+
+<!-- Modal: Producto -->
+<div class="modal-overlay" id="modal-producto">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-producto-titulo">Nuevo Producto</div>
+      <button class="modal-close" onclick="cerrarModal('modal-producto')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="prod-id">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nombre *</label>
+          <input type="text" class="form-control" id="prod-nombre" placeholder="Ej: Balón de fútbol" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Categoría</label>
+          <select class="form-control" id="prod-categoria">
+            <option value="">Sin categoría</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" id="grupo-subcategoria" style="display:none">
+        <label class="form-label">Subcategoría</label>
+        <select class="form-control" id="prod-subcategoria">
+          <option value="">Selecciona...</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Precio de venta</label>
+          <input type="number" class="form-control" id="prod-precio" placeholder="0.00" min="0" step="100">
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Se calcula según margen si hay costo</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Margen (%)</label>
+          <input type="number" class="form-control" id="prod-margen" placeholder="Ej: 30" step="0.1">
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Vacio = usa el de categoría</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Stock</label>
+          <input type="number" class="form-control" id="prod-stock" placeholder="0" readonly style="background:#f5f5f5">
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Gestionado desde Compras</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descripción</label>
+        <input type="text" class="form-control" id="prod-descripcion" placeholder="Descripción opcional">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Imagen del producto</label>
+        <input type="file" class="form-control" id="prod-imagen" accept="image/*">
+        <img id="prod-img-preview" alt="Vista previa" style="display:none;margin-top:10px;width:120px;height:120px;object-fit:cover;border-radius:8px;border:1px solid var(--border)">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cerrarModal('modal-producto')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarProducto()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Cliente -->
+<div class="modal-overlay" id="modal-cliente">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-cliente-titulo">Nuevo Cliente</div>
+      <button class="modal-close" onclick="cerrarModal('modal-cliente')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="cli-id">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nombre</label>
+          <input type="text" class="form-control" id="cli-nombre" placeholder="Nombre">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Apellido</label>
+          <input type="text" class="form-control" id="cli-apellido" placeholder="Apellido">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Teléfono</label>
+          <input type="text" class="form-control" id="cli-telefono" placeholder="Ej: 3001234567">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-control" id="cli-email" placeholder="correo@ejemplo.com">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cerrarModal('modal-cliente')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarCliente()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Detalle Venta -->
+<div class="modal-overlay" id="modal-venta-detalle">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <div class="modal-title">Detalle de Venta</div>
+      <button class="modal-close" onclick="cerrarModal('modal-venta-detalle')">✕</button>
+    </div>
+    <div class="modal-body" id="modal-venta-body">Cargando...</div>
+  </div>
+</div>
+
+<!-- Modal: Detalle Compra -->
+<div class="modal-overlay" id="modal-compra-detalle">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <div class="modal-title">Detalle de Compra a Proveedor</div>
+      <button class="modal-close" onclick="cerrarModal('modal-compra-detalle')">✕</button>
+    </div>
+    <div class="modal-body" id="modal-compra-body">Cargando...</div>
+  </div>
+</div>
+
+<!-- Modal: Categoría -->
+<div class="modal-overlay" id="modal-categoria-panel">
+  <div class="modal" style="max-width:450px">
+    <div class="modal-header"><div class="modal-title" id="cat-panel-titulo">Nueva Categoría</div><button class="modal-close" onclick="cerrarModal('modal-categoria-panel')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="cat-panel-id">
+      <div class="form-group">
+        <label class="form-label">Nombre *</label>
+        <input type="text" class="form-control" id="cat-panel-nombre" placeholder="Ej: Zapatillas" oninput="autoSlugCategoria(this.value)">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Slug <span style="font-size:11px;color:var(--text-muted)">(auto-generado, editable)</span></label>
+        <input type="text" class="form-control" id="cat-panel-slug" placeholder="ej: zapatillas">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tipo de categoría</label>
+        <select class="form-control" id="cat-panel-padre">
+          <option value="">📁 Categoría Padre (raíz)</option>
+        </select>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:3px">Selecciona una padre para crear subcategoría, o deja en blanco para crear una raíz</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Margen Ganancia (%)</label>
+        <input type="number" class="form-control" id="cat-panel-margen" placeholder="Ej: 30" step="0.1" min="0" max="999">
+        <div style="font-size:11px;color:var(--text-muted);margin-top:3px">Los productos sin margen propio heredarán este porcentaje</div>
+      </div>
+      <div class="form-group"><label class="form-label">Descripción</label><input type="text" class="form-control" id="cat-panel-desc" placeholder="Opcional"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="cerrarModal('modal-categoria-panel')">Cancelar</button><button class="btn btn-primary" onclick="guardarCategoriaPanel()">Guardar</button></div>
+  </div>
+</div>
+
+<!-- Modal: Agregar Stock -->
+<div class="modal-overlay" id="modal-stock">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header"><div class="modal-title" id="modal-stock-titulo">Agregar Stock</div><button class="modal-close" onclick="cerrarModal('modal-stock')">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="stock-product-id">
+      <div id="stock-modo-simple">
+        <div class="form-group"><label class="form-label">Cantidad</label><input type="number" class="form-control" id="stock-cantidad" min="1" placeholder="Unidades"></div>
+        <div class="form-group" id="stock-group-precio-total" style="display:none">
+          <label class="form-label">Costo Total del Paquete</label>
+          <input type="number" class="form-control" id="stock-precio-total-simple" min="0" step="1" placeholder="Ej: 500.000 para 100 unidades">
+        </div>
+      </div>
+      <div id="stock-modo-tallas" style="display:none">
+        <div style="margin-bottom:8px;font-weight:bold;font-size:13px">Comprar por talla y versión</div>
+        <div style="overflow-x:auto">
+          <table style="font-size:12px;width:100%;border-collapse:collapse">
+            <thead><tr style="background:#f0f0f0"><th style="padding:6px 8px;text-align:left">Talla</th><th style="padding:6px 8px;text-align:center" colspan="2">Fan</th><th style="padding:6px 8px;text-align:center" colspan="2">Player</th></tr>
+            <tr style="background:#f8f8f8;font-size:11px;color:#666"><th></th><th style="padding:2px 4px">Cant</th><th style="padding:2px 4px">Precio</th><th style="padding:2px 4px">Cant</th><th style="padding:2px 4px">Precio</th></tr></thead>
+            <tbody id="stock-grid-body"></tbody>
+          </table>
+        </div>
+        <div class="form-group" style="margin-top:8px; display: none;"><label class="form-label">Referencia (opcional)</label><input type="text" class="form-control" id="stock-referencia" placeholder="Factura #"></div>
+      </div>
+      
+      <!-- Selector de modo de costo -->
+      <div style="background:var(--bg-secondary);padding:10px;border-radius:8px;margin-top:10px;display:flex;flex-direction:column;gap:8px">
+        <div style="font-weight:bold;font-size:12px">¿Cómo quieres ingresar el costo?</div>
+        <div style="display:flex;gap:16px;font-size:13px">
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
+            <input type="radio" name="cost-mode" value="unit" checked onchange="toggleCostMode('unit')"> Por unidad / sub-paquete
+          </label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
+            <input type="radio" name="cost-mode" value="total" onchange="toggleCostMode('total')"> Valor total del paquete completo
+          </label>
+        </div>
+        <div id="cost-total-batch-container" style="display:none;margin-top:4px">
+          <label class="form-label" style="font-size:12px;margin-bottom:2px">Ingresa el valor total de toda la compra:</label>
+          <input type="number" class="form-control" id="stock-costo-total-global" placeholder="Costo total de todas las unidades">
+          <div id="stock-summary-total" style="font-size:11px;color:var(--text-accent);margin-top:4px;font-weight:bold"></div>
+        </div>
+      </div>
+
+      <div id="stock-modo-simple-info" style="display: none;"><div class="form-group" style="margin-top:8px"><label class="form-label">Referencia (opcional)</label><input type="text" class="form-control" id="stock-referencia-simple" placeholder="Factura #"></div></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="cerrarModal('modal-stock')">Cancelar</button><button class="btn btn-primary" onclick="guardarStock()">Agregar</button></div>
+  </div>
+</div>
+
+<!-- Modal: Usuario (CRUD) -->
+<div class="modal-overlay" id="modal-usuario">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-usuario-titulo">Nuevo Usuario</div>
+      <button class="modal-close" onclick="cerrarModal('modal-usuario')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="usr-id">
+      <input type="hidden" id="usr-modo" value="cliente">
+      <div id="usr-fields-empleado" style="display:none">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Username *</label>
+            <input type="text" class="form-control" id="usr-username" placeholder="Nombre de usuario">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Rol *</label>
+            <select class="form-control" id="usr-rol">
+              <option value="empleado">Empleado</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div id="usr-fields-cliente">
+        <input type="hidden" id="usr-rol-cliente" value="cliente">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Cédula *</label>
+          <input type="text" class="form-control" id="usr-cedula" placeholder="Ej: 1001234567">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nombre *</label>
+          <input type="text" class="form-control" id="usr-nombre" placeholder="Nombre">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Apellido *</label>
+          <input type="text" class="form-control" id="usr-apellido" placeholder="Apellido">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Correo *</label>
+          <input type="email" class="form-control" id="usr-email" placeholder="correo@ejemplo.com">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Teléfono</label>
+          <input type="text" class="form-control" id="usr-telefono" placeholder="3001234567">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Dirección</label>
+          <input type="text" class="form-control" id="usr-direccion" placeholder="Dirección completa">
+        </div>
+      </div>
+      <div id="usr-info-password" style="background:var(--bg-secondary);padding:10px;border-radius:8px;margin-top:8px;font-size:12px;color:var(--text-muted)">
+        🔑 <strong>Contraseña por defecto:</strong> la cédula del usuario.
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content:space-between">
+      <button class="btn btn-danger btn-sm" id="btn-eliminar-usuario" style="display:none" onclick="eliminarUsuario()">Eliminar</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary btn-sm" id="btn-reset-password" style="display:none" onclick="resetPasswordUsuario()">Restablecer contraseña</button>
+        <button class="btn btn-secondary" onclick="cerrarModal('modal-usuario')">Cancelar</button>
+        <button class="btn btn-primary" onclick="guardarUsuario()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal: Nueva Devolución -->
+<div class="modal-overlay" id="modal-devolucion">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <div class="modal-title">Registrar Devolución</div>
+      <button class="modal-close" onclick="cerrarModal('modal-devolucion')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group" style="flex:1">
+          <label class="form-label">Código de Venta (Ticket)</label>
+          <div style="display:flex;gap:8px">
+            <input type="text" class="form-control" id="dev-id-venta" placeholder="Ej: FK000042 o #8">
+            <button class="btn btn-secondary" onclick="buscarVentaParaDevolucion()">Buscar</button>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Motivo de Devolución</label>
+        <input type="text" class="form-control" id="dev-motivo" placeholder="Ej: Producto dañado, cambio de talla, etc.">
+      </div>
+      
+      <div class="form-group" style="background:var(--bg-secondary);padding:12px;border-radius:8px">
+        <label class="form-label">Destino de la Mercancía</label>
+        <div style="display:flex;gap:16px;font-size:13px">
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
+            <input type="radio" name="dev-restock" value="true" checked> Volver a inventario
+          </label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--danger)">
+            <input type="radio" name="dev-restock" value="false"> Pérdida definitiva (Dañado)
+          </label>
+        </div>
+      </div>
+      
+      <div id="dev-productos-container" style="display:none;margin-top:16px;">
+        <div class="table-title" style="font-size:13px;margin-bottom:8px">Productos en la venta:</div>
+        <table style="font-size:13px;width:100%;border-collapse:collapse;" border="1" bordercolor="#eee">
+          <thead style="background:#f9f9f9">
+            <tr><th style="padding:4px">Producto</th><th style="padding:4px">Cant Comprada</th><th style="padding:4px">Precio Unit.</th><th style="padding:4px;width:100px;">A Devolver</th></tr>
+          </thead>
+          <tbody id="dev-productos-lista"></tbody>
+        </table>
+        <div style="text-align:right;margin-top:8px;font-weight:bold;font-size:15px">
+          Total a Reembolsar: <span id="dev-total-reembolso" class="text-accent">$0</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cerrarModal('modal-devolucion')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarDevolucion()" id="btn-save-dev" disabled>Procesar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Reporte de Productos por Categoría -->
+<div class="modal-overlay" id="modal-productos-categoria">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header">
+      <div class="modal-title">📦 Productos Disponibles por Categoría</div>
+      <button class="modal-close" onclick="cerrarModal('modal-productos-categoria')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Categoría</th>
+              <th class="text-center" style="width: 150px; text-align: center;">Clases de Productos</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-productos-categoria"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cerrarModal('modal-productos-categoria')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCRIPTS
+     ============================================================ -->
+<script src="js/api.js?v=20260526-copia"></script>
+<script src="js/app.js?v=20260526-copia"></script>
+
+</body>
+</html>

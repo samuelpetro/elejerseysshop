@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EleJeserys | Panel Admin</title>
+  <link rel="stylesheet" href="/css/estilos.css">
+</head>
+<body>
+<div id="toasts"></div>
+
+<div style="display:flex;min-height:100vh">
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar">
+    <div class="admin-logo">
+      <div class="logo">Ele<span>Jeserys</span></div>
+      <div style="font-size:11px;color:var(--texto-muted);text-transform:uppercase;letter-spacing:2px;margin-top:4px">Panel Admin</div>
+    </div>
+    <nav class="admin-nav">
+      <button class="admin-nav-item activo" data-sec="dashboard" onclick="mostrarSeccion('dashboard',this)">📊 Dashboard</button>
+      <button class="admin-nav-item" data-sec="productos" onclick="mostrarSeccion('productos',this)">👕 Productos</button>
+      <button class="admin-nav-item" data-sec="categorias" onclick="mostrarSeccion('categorias',this)">🏷️ Categorías</button>
+      <button class="admin-nav-item" data-sec="pedidos" onclick="mostrarSeccion('pedidos',this)">📦 Pedidos</button>
+      <button class="admin-nav-item" data-sec="clientes" onclick="mostrarSeccion('clientes',this)">👥 Clientes</button>
+      <button class="admin-nav-item" data-sec="usuarios" onclick="mostrarSeccion('usuarios',this)">⚙️ Administrar usuarios</button>
+    </nav>
+    <div style="padding:16px;border-top:1px solid var(--borde)">
+      <button class="btn btn-outline btn-full btn-sm" onclick="window.location.href='/'">← Ver tienda</button>
+      <button class="btn btn-outline btn-full btn-sm" style="margin-top:8px" onclick="cerrarSesionAdmin()">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div class="admin-titulo" id="admin-titulo">Dashboard</div>
+      <div>
+        <button id="theme-toggle" class="btn btn-outline btn-sm" onclick="toggleTheme()" title="Cambiar tema">💡 Claro</button>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="sec-dashboard">
+      <div class="stats-grid" id="admin-stats">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+      <div class="tabla-card">
+        <div class="tabla-head-bar"><div class="tabla-titulo">Pedidos recientes</div></div>
+        <div class="tabla-wrap">
+          <table><thead><tr><th>#</th><th>Cliente</th><th>Total</th><th>Estado</th><th>Fecha</th><th>Acción</th></tr></thead>
+          <tbody id="tabla-pedidos-recientes"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRODUCTOS -->
+    <div id="sec-productos" class="oculto">
+      <div class="tabla-card">
+        <div class="tabla-head-bar">
+          <div class="tabla-titulo">👕 Productos</div>
+          <button class="btn btn-amarillo btn-sm" onclick="abrirModalProducto()">+ Nuevo producto</button>
+        </div>
+        <div class="tabla-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Imagen</th><th>Nombre</th><th>Categoría</th><th>Precio Fan</th><th>Precio Player</th><th>Activo</th><th>Acciones</th></tr></thead>
+            <tbody id="tabla-productos-admin"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CATEGORIAS -->
+    <div id="sec-categorias" class="oculto">
+      <div class="tabla-card">
+        <div class="tabla-head-bar">
+          <div class="tabla-titulo">🏷️ Categorías</div>
+          <button class="btn btn-amarillo btn-sm" onclick="abrirModalCategoria()">+ Nueva categoría</button>
+        </div>
+        <div class="tabla-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Nombre</th><th>Slug</th><th>Descripción</th><th>Acciones</th></tr></thead>
+            <tbody id="tabla-categorias-admin"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PEDIDOS -->
+    <div id="sec-pedidos" class="oculto">
+      <div class="tabla-card">
+        <div class="tabla-head-bar"><div class="tabla-titulo">📦 Todos los pedidos</div></div>
+        <div class="tabla-wrap">
+          <table>
+            <thead><tr><th>#</th><th>Cliente</th><th>Total</th><th>Estado</th><th>Fecha</th><th>Cambiar estado</th></tr></thead>
+            <tbody id="tabla-todos-pedidos"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLIENTES -->
+    <div id="sec-clientes" class="oculto">
+      <div class="tabla-card">
+        <div class="tabla-head-bar"><div class="tabla-titulo">👥 Clientes registrados</div></div>
+        <div class="tabla-wrap">
+          <table>
+            <thead><tr><th>Cédula</th><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Registrado</th></tr></thead>
+            <tbody id="tabla-clientes-admin"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- USUARIOS -->
+    <div id="sec-usuarios" class="oculto">
+      <div class="tabla-card">
+        <div class="tabla-head-bar">
+          <div class="tabla-titulo">👥 Gestión de Usuarios</div>
+          <div style="display:flex;gap:8px">
+            <input type="text" class="form-input" id="buscar-usuario" placeholder="Buscar por cédula, nombre o correo..." style="width:250px" oninput="cargarUsuarios()">
+            <button class="btn btn-amarillo btn-sm" onclick="abrirModalUsuario()">+ Nuevo usuario</button>
+          </div>
+        </div>
+        <div class="tabla-wrap">
+          <table>
+            <thead><tr><th>Cédula</th><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody id="tabla-usuarios-admin"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL USUARIO -->
+<div class="modal-overlay" id="modal-usuario">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-head">
+      <div class="modal-titulo" id="modal-usr-titulo">Nuevo usuario</div>
+      <button class="modal-close" onclick="cerrarModal('modal-usuario')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="usr-id">
+      <div class="form-fila">
+        <div class="form-grupo">
+          <label class="form-label">Cédula *</label>
+          <input type="text" class="form-input" id="usr-cedula" placeholder="Ej: 1001234567">
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Rol *</label>
+          <select class="form-input" id="usr-rol">
+            <option value="cliente">Cliente</option>
+            <option value="empleado">Empleado</option>
+            <option value="admin">Administrador</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-fila">
+        <div class="form-grupo">
+          <label class="form-label">Nombre *</label>
+          <input type="text" class="form-input" id="usr-nombre" placeholder="Nombre">
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Apellido *</label>
+          <input type="text" class="form-input" id="usr-apellido" placeholder="Apellido">
+        </div>
+      </div>
+      <div class="form-fila">
+        <div class="form-grupo">
+          <label class="form-label">Correo *</label>
+          <input type="email" class="form-input" id="usr-email" placeholder="correo@ejemplo.com">
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Teléfono</label>
+          <input type="text" class="form-input" id="usr-telefono" placeholder="3001234567">
+        </div>
+      </div>
+      <div class="form-grupo">
+        <label class="form-label">Dirección</label>
+        <input type="text" class="form-input" id="usr-direccion" placeholder="Dirección completa">
+      </div>
+      <div id="usr-info-password" style="display:none; background:var(--gris2); padding:10px; border-radius:8px; margin-top:8px; font-size:12px; color:var(--texto-muted)">
+        <strong>Contraseña por defecto:</strong> la cédula del usuario.
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:16px 24px;border-top:1px solid var(--borde)">
+      <button class="btn btn-outline btn-danger btn-sm" id="btn-eliminar-usuario" style="display:none" onclick="eliminarUsuario()">🗑️ Eliminar</button>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-outline btn-sm" id="btn-reset-password" style="display:none" onclick="resetPasswordUsuario()">🔑 Restablecer contraseña</button>
+        <button class="btn btn-outline" onclick="cerrarModal('modal-usuario')">Cancelar</button>
+        <button class="btn btn-amarillo" onclick="guardarUsuario()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PRODUCTO -->
+<div class="modal-overlay" id="modal-producto">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-head">
+      <div class="modal-titulo" id="modal-prod-titulo">Nuevo producto</div>
+      <button class="modal-close" onclick="cerrarModal('modal-producto')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="prod-id">
+      <div class="form-fila">
+        <div class="form-grupo">
+          <label class="form-label">Nombre *</label>
+          <input type="text" class="form-input" id="prod-nombre" placeholder="Ej: Camisa Colombia Local">
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Categoría</label>
+          <select class="form-input" id="prod-categoria"></select>
+        </div>
+      </div>
+      <div class="form-fila">
+        <div class="form-grupo">
+          <label class="form-label">Precio Fan (COP) *</label>
+          <input type="number" class="form-input" id="prod-precio" placeholder="120000">
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Precio Player (COP)</label>
+          <input type="number" class="form-input" id="prod-precio-player" placeholder="220000">
+        </div>
+      </div>
+      <div class="form-grupo">
+        <label class="form-label">Descripción</label>
+        <input type="text" class="form-input" id="prod-desc" placeholder="Descripción del producto">
+      </div>
+      <div class="form-grupo">
+        <label class="form-label">
+          <input type="checkbox" id="prod-destacado" style="margin-right:6px">
+          Producto destacado (aparece en el inicio)
+        </label>
+      </div>
+
+      <!-- INVENTARIO por talla -->
+      <div style="margin-top:16px">
+        <div class="tabla-titulo" style="margin-bottom:12px">Inventario por talla</div>
+        <table style="font-size:13px">
+          <thead><tr><th>Talla</th><th>Fan</th><th>Player</th></tr></thead>
+          <tbody>
+            <tr><td>S</td><td><input type="number" class="form-input" id="inv-S-Fan" value="0" min="0" style="width:80px"></td><td><input type="number" class="form-input" id="inv-S-Player" value="0" min="0" style="width:80px"></td></tr>
+            <tr><td>M</td><td><input type="number" class="form-input" id="inv-M-Fan" value="0" min="0" style="width:80px"></td><td><input type="number" class="form-input" id="inv-M-Player" value="0" min="0" style="width:80px"></td></tr>
+            <tr><td>L</td><td><input type="number" class="form-input" id="inv-L-Fan" value="0" min="0" style="width:80px"></td><td><input type="number" class="form-input" id="inv-L-Player" value="0" min="0" style="width:80px"></td></tr>
+            <tr><td>XL</td><td><input type="number" class="form-input" id="inv-XL-Fan" value="0" min="0" style="width:80px"></td><td><input type="number" class="form-input" id="inv-XL-Player" value="0" min="0" style="width:80px"></td></tr>
+            <tr><td>XXL</td><td><input type="number" class="form-input" id="inv-XXL-Fan" value="0" min="0" style="width:80px"></td><td><input type="number" class="form-input" id="inv-XXL-Player" value="0" min="0" style="width:80px"></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- IMAGEN -->
+      <div class="form-grupo" style="margin-top:16px">
+        <label class="form-label">Imagen del producto</label>
+        <input type="file" class="form-input" id="prod-imagen" accept="image/*">
+        <div style="font-size:11px;color:var(--texto-muted);margin-top:4px">JPG, PNG o WEBP. Máx. 5MB.</div>
+        <div id="img-preview" style="margin-top:8px"></div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;padding:16px 24px;border-top:1px solid var(--borde)">
+      <button class="btn btn-outline" onclick="cerrarModal('modal-producto')">Cancelar</button>
+      <button class="btn btn-amarillo" onclick="guardarProducto()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CATEGORÍA -->
+<div class="modal-overlay" id="modal-categoria">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <div class="modal-titulo" id="modal-cat-titulo">Nueva categoría</div>
+      <button class="modal-close" onclick="cerrarModal('modal-categoria')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="cat-id">
+      <div class="form-grupo">
+        <label class="form-label">Nombre *</label>
+        <input type="text" class="form-input" id="cat-nombre" placeholder="Ej: Real Madrid">
+      </div>
+      <div class="form-grupo">
+        <label class="form-label">Slug * (sin espacios, en minúsculas)</label>
+        <input type="text" class="form-input" id="cat-slug" placeholder="Ej: real-madrid">
+      </div>
+      <div class="form-grupo">
+        <label class="form-label">Descripción</label>
+        <input type="text" class="form-input" id="cat-desc" placeholder="Descripción breve">
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;padding:16px 24px;border-top:1px solid var(--borde)">
+      <button class="btn btn-outline" onclick="cerrarModal('modal-categoria')">Cancelar</button>
+      <button class="btn btn-amarillo" onclick="guardarCategoria()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/admin.js"></script>
+</body>
+</html>

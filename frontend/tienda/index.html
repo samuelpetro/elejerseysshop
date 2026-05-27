@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EleJeserys | Camisas Deportivas</title>
+  <link rel="stylesheet" href="/css/estilos.css">
+</head>
+<body>
+
+<!-- ============================================================ HEADER -->
+<header class="header">
+  <div class="header-inner">
+    <div class="logo" onclick="irAPagina('inicio')" style="cursor:pointer">
+      Ele<span>Jeserys</span>
+    </div>
+    <nav class="nav-cats" id="nav-cats">
+      <button class="nav-cat activo" data-cat="" onclick="filtrarCategoria(this, '')">Todos</button>
+    </nav>
+    <div class="header-actions">
+      <button id="theme-toggle" class="btn-user" onclick="toggleTheme()" style="min-width: 80px; padding: 8px;" title="Cambiar tema">💡 Claro</button>
+      <button class="btn-carrito" onclick="toggleCarrito()" title="Ver carrito">
+        🛒 <span class="carrito-badge oculto" id="carrito-badge">0</span>
+      </button>
+      <div id="btn-usuario-area">
+        <button class="btn-user" onclick="abrirAuth()">Iniciar sesión</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ============================================================ TOASTS -->
+<div id="toasts"></div>
+
+<!-- ============================================================ PÁGINA: INICIO -->
+<div class="pagina activa" id="pagina-inicio">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-tag">🇨🇴 Tienda Oficial</div>
+    <h1>Camisas <span>Deportivas</span><br>Fan & Player</h1>
+    <p>Originales de tus equipos favoritos. Versión Fan y Player con todas las tallas disponibles.</p>
+    <div class="hero-btns">
+      <button class="btn btn-amarillo" onclick="irACatalogo()">Ver Catálogo</button>
+      <button class="btn btn-outline" onclick="irACatalogo('colombia')">🇨🇴 Colombia</button>
+    </div>
+  </section>
+
+  <!-- Productos Destacados -->
+  <section class="seccion">
+    <div class="contenedor">
+      <h2 class="seccion-titulo">⭐ Destacados</h2>
+      <div class="grid-productos" id="grid-destacados">
+        <div class="loading"><div class="spinner"></div> Cargando...</div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ============================================================ PÁGINA: CATÁLOGO -->
+<div class="pagina" id="pagina-catalogo">
+  <section class="seccion">
+    <div class="contenedor">
+      <div class="breadcrumb">
+        <span onclick="irAPagina('inicio')">Inicio</span>
+        <span class="breadcrumb-sep">/</span>
+        <span>Catálogo</span>
+      </div>
+
+      <!-- Filtros -->
+      <div class="filtros">
+        <input type="text" class="buscador" id="buscador" placeholder="🔍 Buscar camisa..." oninput="aplicarFiltros()">
+        <div class="filtro-grupo">
+          <span class="filtro-label">Versión</span>
+          <select class="filtro-sel" id="filtro-version" onchange="aplicarFiltros()">
+            <option value="">Todas</option>
+            <option value="Fan">Fan</option>
+            <option value="Player">Player</option>
+          </select>
+        </div>
+        <div class="filtro-grupo">
+          <span class="filtro-label">Talla</span>
+          <select class="filtro-sel" id="filtro-talla" onchange="aplicarFiltros()">
+            <option value="">Todas</option>
+            <option value="S">S</option>
+            <option value="M">M</option>
+            <option value="L">L</option>
+            <option value="XL">XL</option>
+            <option value="XXL">XXL</option>
+          </select>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="limpiarFiltros()">Limpiar</button>
+      </div>
+
+      <h2 class="seccion-titulo" id="titulo-catalogo">Todos los productos</h2>
+      <div class="grid-productos" id="grid-catalogo">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============================================================ PÁGINA: DETALLE -->
+<div class="pagina" id="pagina-detalle">
+  <section class="seccion">
+    <div class="contenedor">
+      <div class="breadcrumb" id="breadcrumb-detalle"></div>
+      <div id="detalle-contenido">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============================================================ PÁGINA: MIS PEDIDOS -->
+<div class="pagina" id="pagina-pedidos">
+  <section class="seccion">
+    <div class="contenedor">
+      <div class="breadcrumb">
+        <span onclick="irAPagina('inicio')">Inicio</span>
+        <span class="breadcrumb-sep">/</span>
+        <span>Mis pedidos</span>
+      </div>
+      <h2 class="seccion-titulo">📦 Mis pedidos</h2>
+      <div id="mis-pedidos-lista">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============================================================ CARRITO LATERAL -->
+<div class="carrito-overlay" id="carrito-overlay" onclick="toggleCarrito()"></div>
+<div class="carrito-panel" id="carrito-panel">
+  <div class="carrito-head">
+    <div class="carrito-titulo">🛒 Tu carrito</div>
+    <button class="btn-cerrar-carrito" onclick="toggleCarrito()">✕</button>
+  </div>
+  <div class="carrito-items" id="carrito-items">
+    <div class="carrito-vacio">Tu carrito está vacío.<br>¡Agrega una camisa!</div>
+  </div>
+  <div class="carrito-foot">
+    <div class="carrito-total-row">
+      <div>
+        <div class="carrito-total-label">Total</div>
+        <div class="carrito-total-val" id="carrito-total">$0</div>
+      </div>
+      <button class="btn btn-amarillo" onclick="procesarPedido()" id="btn-pedir">
+        Hacer pedido
+      </button>
+    </div>
+    <div id="carrito-direccion" class="oculto" style="margin-top:12px">
+      <div class="form-grupo">
+        <label class="form-label">Dirección de entrega</label>
+        <input type="text" class="form-input" id="input-direccion" placeholder="Tu dirección completa">
+      </div>
+      <div class="form-grupo">
+        <label class="form-label">Notas (opcional)</label>
+        <input type="text" class="form-input" id="input-notas" placeholder="Ej: Timbre 3, piso 2">
+      </div>
+      <button class="btn btn-amarillo btn-full" onclick="confirmarPedido()">✅ Confirmar pedido</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ MODAL AUTH -->
+<div class="modal-overlay" id="modal-auth">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-titulo" id="modal-auth-titulo">Mi cuenta</div>
+      <button class="modal-close" onclick="cerrarAuth()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-tabs">
+        <button class="modal-tab activo" onclick="cambiarTabAuth('login')">Iniciar sesión</button>
+        <button class="modal-tab" onclick="cambiarTabAuth('registro')">Crear cuenta</button>
+      </div>
+      <div class="form-error" id="auth-error"></div>
+
+      <!-- SECTOR DE ROL (MENUSITO ARRIBA) -->
+      <div class="role-selector" id="login-role-selector" style="display:flex;background:var(--gris2);border:1px solid var(--borde);border-radius:8px;padding:3px;margin-bottom:16px">
+        <button type="button" class="role-btn active" id="role-btn-cliente" onclick="setLoginRole('cliente')" style="flex:1;padding:8px;text-align:center;cursor:pointer;border-radius:6px;font-size:13px;font-weight:600;color:var(--texto-muted);border:none;background:none;transition:all 0.15s;font-family:var(--font-body)">Cliente</button>
+        <button type="button" class="role-btn" id="role-btn-admin" onclick="setLoginRole('admin')" style="flex:1;padding:8px;text-align:center;cursor:pointer;border-radius:6px;font-size:13px;font-weight:600;color:var(--texto-muted);border:none;background:none;transition:all 0.15s;font-family:var(--font-body)">Administrador</button>
+      </div>
+
+      <!-- LOGIN -->
+      <form id="form-login" onsubmit="handleLogin(event)">
+        <div class="form-grupo" id="login-email-grupo">
+          <label class="form-label" id="login-label-user">Correo electrónico</label>
+          <input type="email" class="form-input" id="login-email" placeholder="tu@correo.com" required>
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Contraseña</label>
+          <input type="password" class="form-input" id="login-pass" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-amarillo btn-full" id="btn-login-submit">
+          Entrar a mi cuenta
+        </button>
+      </form>
+
+      <!-- REGISTRO -->
+      <form id="form-registro" class="oculto" onsubmit="handleRegistro(event)">
+        <div class="form-fila">
+          <div class="form-grupo">
+            <label class="form-label">Nombre *</label>
+            <input type="text" class="form-input" id="reg-nombre" placeholder="Tu nombre" required>
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Apellido *</label>
+            <input type="text" class="form-input" id="reg-apellido" placeholder="Tu apellido" required>
+          </div>
+        </div>
+        <div class="form-grupo">
+          <label class="form-label">Correo electrónico *</label>
+          <input type="email" class="form-input" id="reg-email" placeholder="tu@correo.com" required>
+        </div>
+        <div class="form-fila">
+          <div class="form-grupo">
+            <label class="form-label">Teléfono</label>
+            <input type="text" class="form-input" id="reg-telefono" placeholder="3001234567">
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Dirección</label>
+            <input type="text" class="form-input" id="reg-direccion" placeholder="Tu dirección">
+          </div>
+        </div>
+        <div class="form-fila">
+          <div class="form-grupo">
+            <label class="form-label">Contraseña *</label>
+            <input type="password" class="form-input" id="reg-pass" placeholder="Mínimo 6 caracteres" minlength="6" required>
+          </div>
+          <div class="form-grupo">
+            <label class="form-label">Confirmar contraseña *</label>
+            <input type="password" class="form-input" id="reg-pass2" placeholder="Repite la contraseña" required>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-amarillo btn-full" id="btn-reg-submit">
+          Crear mi cuenta
+        </button>
+        <p style="text-align:center;font-size:12px;color:var(--texto-muted);margin-top:12px">
+          Al registrarte aceptas nuestros términos y condiciones.
+        </p>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ FOOTER -->
+<footer class="footer">
+  <div class="footer-logo">EleJeserys</div>
+  <div class="footer-links">
+    <a href="#" onclick="irACatalogo()">Catálogo</a>
+    <a href="#" onclick="irAPaginaPedidos()">Mis pedidos</a>
+    <a href="#">Contacto</a>
+  </div>
+  <p>🇨🇴 Camisas deportivas originales Fan & Player | EleJeserys © 2025</p>
+</footer>
+
+<script src="/js/tienda.js"></script>
+</body>
+</html>
