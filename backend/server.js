@@ -31,13 +31,22 @@ app.use("/api/ventas",      require("./routes/ventas"));
 app.use("/api/dashboard",   require("./routes/dashboard"));
 app.use("/api/devoluciones", require("./routes/devoluciones"));
 
-// SPA: todo lo que no sea /api va al frontend
+// Ruta raíz: verifica que la API funciona
+app.get("/", (req, res) => {
+  res.json({ mensaje: "API funcionando", docs: "/api/productos" });
+});
+
+// Servir frontend solo si existe el archivo
+const frontendPath = path.join(__dirname, "..", "frontend", "panel", "index.html");
+const fs = require("fs");
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/panel/index.html"));
+  if (req.path.startsWith("/api")) return;
+  if (fs.existsSync(frontendPath)) return res.sendFile(frontendPath);
+  res.status(200).json({ mensaje: "API activa", frontend: "no encontrado" });
 });
 
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error("ERROR:", err.message);
   res.status(500).json({ error: "Error interno." });
 });
 

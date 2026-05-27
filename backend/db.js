@@ -18,8 +18,8 @@ async function testConnection() {
     console.log("✅ Conectado a MySQL:", process.env.DB_NAME);
     conn.release();
   } catch (err) {
-    console.error("❌ Error MySQL:", err.message);
-    process.exit(1);
+    console.error("⚠️  MySQL no disponible:", err.message);
+    console.error("   El servidor arrancará igual, la BD se conectará al primer request");
   }
 }
 testConnection();
