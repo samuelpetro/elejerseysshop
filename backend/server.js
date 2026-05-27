@@ -1,24 +1,14 @@
 // ============================================================
-// server.js UNIFICADO - EleJeserys + Tienda Deportiva
-// Puerto: 3000 | Frontend: / (tienda) y /panel/ (admin)
+// server.js - API Backend para Railway
+// Frontend desplegado por separado en Vercel
 // ============================================================
 const express = require("express");
 const cors = require("cors");
-const path = require("path");
 require("dotenv").config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-
-// Imagenes compartidas
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
-
-// EleJeserys frontend (tienda online)
-app.use(express.static(path.join(__dirname, "../frontend/tienda")));
-
-// Tienda Deportiva frontend (panel admin)
-app.use("/panel", express.static(path.join(__dirname, "../frontend/panel")));
 
 // ============================================================
 // API ROUTES
@@ -34,9 +24,8 @@ app.use("/api/ventas",      require("./routes/ventas"));
 app.use("/api/dashboard",   require("./routes/dashboard"));
 app.use("/api/devoluciones", require("./routes/devoluciones"));
 
-// Catch-all: EleJeserys SPA
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/tienda/index.html"));
+app.get("/", (req, res) => {
+  res.json({ mensaje: "API EleJerseys funcionando" });
 });
 
 app.use((err, req, res, next) => {
@@ -46,7 +35,5 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`\nServidor UNIFICADO en http://localhost:${PORT}`);
-  console.log(`  Tienda: http://localhost:${PORT}`);
-  console.log(`  Panel:  http://localhost:${PORT}/panel/login.html`);
+  console.log(`API funcionando en puerto ${PORT}`);
 });
