@@ -44,6 +44,7 @@ class KardexPonderado {
       id_referencia = null,
       talla = null,
       version = null,
+      id_proveedor = null,
     } = datos;
 
     const cantidadAbs = Math.abs(Number(cantidad));
@@ -84,8 +85,9 @@ class KardexPonderado {
     const [result] = await conn.query(
       `INSERT INTO movimientos
        (origen, tipo, id_producto, talla, version, id_referencia, referencia,
-        cantidad, costo_unitario, costo_total, saldo_cantidad, saldo_costo_total, costo_promedio)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+        cantidad, costo_unitario, costo_total, saldo_cantidad, saldo_costo_total, costo_promedio,
+        id_proveedor)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [
         origen,
         tipo,
@@ -100,6 +102,7 @@ class KardexPonderado {
         saldoCantidad,
         saldoCostoTotal,
         costoPromedio,
+        id_proveedor,
       ]
     );
 

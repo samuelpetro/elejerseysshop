@@ -111,6 +111,13 @@ const API = {
   createDevolucion:  (body)   => apiFetch(`/devoluciones`, { method: "POST", body: JSON.stringify(body) }),
   updateEstadoDevolucion: (id, estado) => apiFetch(`/devoluciones/${id}/estado`, { method: "PUT", body: JSON.stringify({ estado }) }),
   deleteDevolucion: (id) => apiFetch(`/devoluciones/${id}`, { method: "DELETE" }),
+
+  // Proveedores
+  getProveedores:    () => apiFetch("/proveedores"),
+  getProveedor:     (id) => apiFetch(`/proveedores/${id}`),
+  createProveedor:  (body) => apiFetch("/proveedores", { method: "POST", body: JSON.stringify(body) }),
+  updateProveedor:  (id, body) => apiFetch(`/proveedores/${id}`, { method: "PUT", body: JSON.stringify(body) }),
+  deleteProveedor:  (id) => apiFetch(`/proveedores/${id}`, { method: "DELETE" }),
 };
 
 // ============================================================
@@ -180,6 +187,7 @@ function navigateTo(page) {
     clientes: "Clientes",
     usuarios: "Usuarios",
     devoluciones: "Devoluciones",
+    proveedores: "Proveedores",
   };
   const titleEl = document.getElementById("page-title");
   if (titleEl) titleEl.textContent = titles[page] || page;
@@ -202,6 +210,7 @@ function navigateTo(page) {
       clientes: loadClientes,
       usuarios: loadUsuarios,
       devoluciones: loadDevoluciones,
+      proveedores: loadProveedores,
     };
     if (loaders[page]) loaders[page]();
   }

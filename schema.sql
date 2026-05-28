@@ -217,6 +217,20 @@ CREATE TABLE IF NOT EXISTS producto_imagenes (
 ) ENGINE=InnoDB;
 
 -- ============================================================
+-- 11. PROVEEDORES
+-- ============================================================
+CREATE TABLE IF NOT EXISTS proveedores (
+  id_proveedor INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(100) NOT NULL,
+  contacto VARCHAR(100),
+  telefono VARCHAR(20),
+  email VARCHAR(150),
+  creado_en DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+ALTER TABLE movimientos ADD COLUMN id_proveedor INT NULL AFTER id_referencia;
+
+-- ============================================================
 -- DATOS INICIALES
 -- Contraseñas hasheadas con bcrypt (texto plano: "1234")
 -- ============================================================
@@ -281,3 +295,10 @@ SELECT 'elejeserys', 'entrada', i.id_producto, i.talla, i.version, 'stock_inicia
   CASE WHEN i.version = 'Player' THEN COALESCE(p.precio_player, p.precio) ELSE p.precio END
 FROM inventario i JOIN productos p ON p.id_producto = i.id_producto WHERE i.stock > 0
   AND NOT EXISTS (SELECT 1 FROM movimientos m WHERE m.id_producto = i.id_producto AND m.referencia = 'stock_inicial' AND m.talla = i.talla AND m.version = i.version);
+
+-- Proveedores iniciales
+INSERT INTO proveedores (nombre, contacto, telefono) VALUES
+('Distribuidora Deportiva SAS', 'Carlos Méndez', '3001112233'),
+('Importaciones Global Sport', 'Ana López', '3004445566'),
+('Proveedor Local', 'Pedro Ramírez', '3007778899')
+ON DUPLICATE KEY UPDATE nombre = VALUES(nombre);

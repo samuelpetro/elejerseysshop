@@ -377,6 +377,8 @@ router.post("/:id/agregar-stock", verificarToken, soloAdmin, async (req, res) =>
   try {
     await conn.beginTransaction();
     
+    const id_proveedor = req.body.id_proveedor || null;
+
     let ref = req.body.referencia;
     if (!ref || ref === "compra" || ref.trim() === "") {
       let catName = "GEN";
@@ -433,7 +435,7 @@ router.post("/:id/agregar-stock", verificarToken, soloAdmin, async (req, res) =>
       if (req.body.talla && req.body.version) {
         await conn.query("INSERT INTO inventario (id_producto,talla,version,stock) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE stock=stock+?", [req.params.id, req.body.talla, req.body.version, qty, qty]);
       }
-      await KardexPonderado.registrarMovimiento(conn, { id_producto: req.params.id, tipo: "entrada", cantidad: qty, costo_unitario: costo, referencia: ref, id_referencia: req.params.id, talla: req.body.talla || null, version: req.body.version || null });
+      await KardexPonderado.registrarMovimiento(conn, { id_producto: req.params.id, tipo: "entrada", cantidad: qty, costo_unitario: costo, referencia: ref, id_referencia: req.params.id, talla: req.body.talla || null, version: req.body.version || null, id_proveedor });
     }
 
     // Modo tallas: array de items (camisetas)
@@ -453,7 +455,7 @@ router.post("/:id/agregar-stock", verificarToken, soloAdmin, async (req, res) =>
         costoAgregadoTotal += (qty * costo);
 
         await conn.query("INSERT INTO inventario (id_producto,talla,version,stock) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE stock=stock+?", [req.params.id, item.talla, item.version, qty, qty]);
-        await KardexPonderado.registrarMovimiento(conn, { id_producto: req.params.id, tipo: "entrada", cantidad: qty, costo_unitario: costo, referencia: ref, id_referencia: req.params.id, talla: item.talla, version: item.version });
+        await KardexPonderado.registrarMovimiento(conn, { id_producto: req.params.id, tipo: "entrada", cantidad: qty, costo_unitario: costo, referencia: ref, id_referencia: req.params.id, talla: item.talla, version: item.version, id_proveedor });
       }
 
       if (stockAgregadoTotal > 0) {

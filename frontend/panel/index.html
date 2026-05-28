@@ -66,6 +66,7 @@
         <div class="submenu">
           <div class="nav-item admin-only" data-page="usuarios" onclick="navigateTo('usuarios')"><span class="nav-icon">👤</span> Usuarios</div>
           <div class="nav-item admin-only" data-page="clientes" onclick="navigateTo('clientes')"><span class="nav-icon">👥</span> Clientes</div>
+          <div class="nav-item admin-only" data-page="proveedores" onclick="navigateTo('proveedores')"><span class="nav-icon">🏢</span> Proveedores</div>
         </div>
       </div>
     </nav>
@@ -404,6 +405,24 @@
         </div>
       </div>
 
+      <!-- SECCION: PROVEEDORES -->
+      <div id="section-proveedores" class="page-section hidden">
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">🏢 Proveedores</div>
+            <button class="btn btn-primary btn-sm" onclick="abrirModalProveedor()">+ Nuevo</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Nombre</th><th>Contacto</th><th>Teléfono</th><th>Email</th><th>Acciones</th></tr></thead>
+              <tbody id="tabla-proveedores">
+                <tr><td colspan="5"><div class="loading"><div class="spinner"></div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
     </div><!-- /page-body -->
   </div><!-- /main-content -->
 </div><!-- /app-shell -->
@@ -442,14 +461,9 @@
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Precio de venta</label>
-          <input type="number" class="form-control" id="prod-precio" placeholder="0.00" min="0" step="100">
-          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Se calcula según margen si hay costo</div>
-        </div>
-        <div class="form-group">
           <label class="form-label">Margen (%)</label>
           <input type="number" class="form-control" id="prod-margen" placeholder="Ej: 30" step="0.1">
-          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Vacio = usa el de categoría</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Precio se calcula automáticamente al comprar</div>
         </div>
         <div class="form-group">
           <label class="form-label">Stock</label>
@@ -565,6 +579,28 @@
   </div>
 </div>
 
+<!-- Modal: Proveedor -->
+<div class="modal-overlay" id="modal-proveedor">
+  <div class="modal" style="max-width:450px">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-proveedor-titulo">Nuevo Proveedor</div>
+      <button class="modal-close" onclick="cerrarModal('modal-proveedor')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="prov-id">
+      <div class="form-group"><label class="form-label">Nombre *</label><input type="text" class="form-control" id="prov-nombre" placeholder="Nombre del proveedor"></div>
+      <div class="form-group"><label class="form-label">Contacto</label><input type="text" class="form-control" id="prov-contacto" placeholder="Persona de contacto"></div>
+      <div class="form-group"><label class="form-label">Teléfono</label><input type="text" class="form-control" id="prov-telefono" placeholder="3001234567"></div>
+      <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-control" id="prov-email" placeholder="proveedor@ejemplo.com"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cerrarModal('modal-proveedor')">Cancelar</button>
+      <button class="btn btn-danger" id="btn-eliminar-proveedor" style="display:none" onclick="eliminarProveedor()">Eliminar</button>
+      <button class="btn btn-primary" onclick="guardarProveedor()">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal: Agregar Stock -->
 <div class="modal-overlay" id="modal-stock">
   <div class="modal" style="max-width:560px">
@@ -573,6 +609,13 @@
       <input type="hidden" id="stock-product-id">
       <div id="stock-modo-simple">
         <div class="form-group"><label class="form-label">Cantidad</label><input type="number" class="form-control" id="stock-cantidad" min="1" placeholder="Unidades"></div>
+        <div class="form-group">
+          <label class="form-label">Proveedor</label>
+          <select class="form-control" id="stock-proveedor">
+            <option value="">Seleccionar proveedor...</option>
+          </select>
+        </div>
+        <input type="hidden" id="stock-precio-compra" value="0">
         <div class="form-group" id="stock-group-precio-total" style="display:none">
           <label class="form-label">Costo Total del Paquete</label>
           <input type="number" class="form-control" id="stock-precio-total-simple" min="0" step="1" placeholder="Ej: 500.000 para 100 unidades">
@@ -580,6 +623,12 @@
       </div>
       <div id="stock-modo-tallas" style="display:none">
         <div style="margin-bottom:8px;font-weight:bold;font-size:13px">Comprar por talla y versión</div>
+        <div class="form-group" style="margin-bottom:8px">
+          <label class="form-label">Proveedor</label>
+          <select class="form-control" id="stock-proveedor-grid">
+            <option value="">Seleccionar proveedor...</option>
+          </select>
+        </div>
         <div style="overflow-x:auto">
           <table style="font-size:12px;width:100%;border-collapse:collapse">
             <thead><tr style="background:#f0f0f0"><th style="padding:6px 8px;text-align:left">Talla</th><th style="padding:6px 8px;text-align:center" colspan="2">Fan</th><th style="padding:6px 8px;text-align:center" colspan="2">Player</th></tr>
@@ -771,8 +820,8 @@
 <!-- ============================================================
      SCRIPTS
      ============================================================ -->
-<script src="js/api.js?v=20260526-copia"></script>
-<script src="js/app.js?v=20260526-copia"></script>
+<script src="js/api.js?v=20260528-1"></script>
+<script src="js/app.js?v=20260528-1"></script>
 
 </body>
 </html>

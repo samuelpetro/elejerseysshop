@@ -1035,7 +1035,6 @@ async function guardarProducto() {
   const id = document.getElementById("prod-id").value;
   const subcat = document.getElementById("prod-subcategoria").value;
   const cat = document.getElementById("prod-categoria").value;
-  const precioVal = parseFloat(document.getElementById("prod-precio").value);
   const margenVal = parseFloat(document.getElementById("prod-margen").value);
 
   const body = {
@@ -1044,9 +1043,6 @@ async function guardarProducto() {
     id_categoria:      subcat || cat || null,
     margen_porcentaje: isNaN(margenVal) ? null : margenVal,
   };
-
-  // Solo incluir precio si fue ingresado manualmente y es valido
-  if (!isNaN(precioVal) && precioVal > 0) body.precio = precioVal;
 
   if (!body.nombre) {
     showToast("El nombre es requerido.", "error"); return;
@@ -1277,6 +1273,18 @@ function abrirModalStock(id) {
   document.getElementById("stock-costo-total-global").oninput = updateStockSummary;
   toggleCostMode("unit");
 
+  // Populate supplier dropdown
+  API.getProveedores().then(provs => {
+    const sel = document.getElementById("stock-proveedor");
+    if (sel) {
+      sel.innerHTML = '<option value="">Sin proveedor</option>' + provs.map(p => `<option value="${p.id_proveedor}">${p.nombre}</option>`).join("");
+    }
+    const selGrid = document.getElementById("stock-proveedor-grid");
+    if (selGrid) {
+      selGrid.innerHTML = '<option value="">Sin proveedor</option>' + provs.map(p => `<option value="${p.id_proveedor}">${p.nombre}</option>`).join("");
+    }
+  }).catch(() => {});
+
   abrirModal("modal-stock");
 }
 
@@ -1313,7 +1321,8 @@ async function guardarStock() {
         if (items.some(i => i.precio_compra <= 0)) { showToast("Ingresa el precio de compra para cada talla.", "error"); return; }
       }
 
-      await API.agregarStock(_stockProductId, { items, referencia: document.getElementById("stock-referencia").value || "compra" });
+      const idProveedorGrid = document.getElementById("stock-proveedor-grid")?.value || null;
+      await API.agregarStock(_stockProductId, { items, referencia: document.getElementById("stock-referencia").value || "compra", id_proveedor: idProveedorGrid });
       showToast("Stock por tallas agregado.", "success");
     } else {
       const c = parseInt(document.getElementById("stock-cantidad").value);
@@ -1327,7 +1336,8 @@ async function guardarStock() {
       }
 
       if (!c || c <= 0) { showToast("Ingresa una cantidad válida.", "error"); return; }
-      await API.agregarStock(_stockProductId, { cantidad: c, referencia: document.getElementById("stock-referencia-simple").value || "compra" });
+      const idProveedorSimple = document.getElementById("stock-proveedor")?.value || null;
+      await API.agregarStock(_stockProductId, { cantidad: c, referencia: document.getElementById("stock-referencia-simple").value || "compra", id_proveedor: idProveedorSimple });
       showToast("+"+c+" unidades agregadas.", "success");
     }
     cerrarModal("modal-stock");
@@ -2325,4 +2335,74 @@ function verMotivoDevolucion(cliente, motivo, volver_a_stock) {
     </div>
   `;
   showToastHTML(html);
+}
+
+// ============================================================
+// PROVEEDORES
+// ============================================================
+async function loadProveedores() {
+  try {
+    const rows = await API.getProveedores();
+    const tbody = document.getElementById("tabla-proveedores");
+    tbody.innerHTML = rows.map(p => `
+      <tr>
+        <td class="fw-bold">${p.nombre}</td>
+        <td>${p.contacto || '<span class="text-muted">—</span>'}</td>
+        <td>${p.telefono || '<span class="text-muted">—</span>'}</td>
+        <td>${p.email || '<span class="text-muted">—</span>'}</td>
+        <td>
+          <button class="btn btn-secondary btn-sm btn-icon" onclick="editarProveedor(${p.id_proveedor})">✏️</button>
+          <button class="btn btn-danger btn-sm btn-icon" onclick="eliminarProveedor(${p.id_proveedor}, '${p.nombre.replace(/'/g,"\\'")}')">🗑️</button>
+        </td>
+      </tr>
+    `).join("") || '<tr><td colspan="5" class="text-muted" style="text-align:center;padding:24px">Sin proveedores.</td></tr>';
+  } catch (err) { showToast("Error: " + err.message, "error"); }
+}
+
+function abrirModalProveedor() {
+  document.getElementById("modal-proveedor-titulo").textContent = "Nuevo Proveedor";
+  document.getElementById("prov-id").value = "";
+  ["prov-nombre","prov-contacto","prov-telefono","prov-email"].forEach(id => document.getElementById(id).value = "");
+  document.getElementById("btn-eliminar-proveedor").style.display = "none";
+  abrirModal("modal-proveedor");
+}
+
+async function editarProveedor(id) {
+  try {
+    const p = await API.getProveedor(id);
+    document.getElementById("modal-proveedor-titulo").textContent = "Editar Proveedor";
+    document.getElementById("prov-id").value = p.id_proveedor;
+    document.getElementById("prov-nombre").value = p.nombre || "";
+    document.getElementById("prov-contacto").value = p.contacto || "";
+    document.getElementById("prov-telefono").value = p.telefono || "";
+    document.getElementById("prov-email").value = p.email || "";
+    document.getElementById("btn-eliminar-proveedor").style.display = "inline-flex";
+    abrirModal("modal-proveedor");
+  } catch (err) { showToast(err.message, "error"); }
+}
+
+async function guardarProveedor() {
+  const id = document.getElementById("prov-id").value;
+  const body = {
+    nombre: document.getElementById("prov-nombre").value.trim(),
+    contacto: document.getElementById("prov-contacto").value.trim(),
+    telefono: document.getElementById("prov-telefono").value.trim(),
+    email: document.getElementById("prov-email").value.trim(),
+  };
+  if (!body.nombre) { showToast("Nombre requerido.", "error"); return; }
+  try {
+    if (id) { await API.updateProveedor(id, body); showToast("Actualizado.", "success"); }
+    else { await API.createProveedor(body); showToast("Creado.", "success"); }
+    cerrarModal("modal-proveedor");
+    loadProveedores();
+  } catch (err) { showToast(err.message, "error"); }
+}
+
+async function eliminarProveedor(id, nombre) {
+  if (!confirm(`¿Eliminar proveedor "${nombre}"?`)) return;
+  try {
+    await API.deleteProveedor(id);
+    showToast("Eliminado.", "info");
+    loadProveedores();
+  } catch (err) { showToast(err.message, "error"); }
 }

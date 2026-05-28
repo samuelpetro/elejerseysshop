@@ -33,6 +33,7 @@ app.use("/api/usuarios",    require("./routes/usuarios"));
 app.use("/api/ventas",      require("./routes/ventas"));
 app.use("/api/dashboard",   require("./routes/dashboard"));
 app.use("/api/devoluciones", require("./routes/devoluciones"));
+app.use("/api/proveedores", require("./routes/proveedores"));
 
 // Catch-all: EleJeserys SPA
 app.get("*", (req, res) => {
