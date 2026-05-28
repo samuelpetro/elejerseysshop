@@ -984,7 +984,6 @@ function abrirModalProducto() {
   document.getElementById("modal-producto-titulo").textContent = "Nuevo Producto";
   document.getElementById("prod-id").value = "";
   document.getElementById("prod-nombre").value = "";
-  document.getElementById("prod-precio").value = "";
   document.getElementById("prod-margen").value = "";
   document.getElementById("prod-stock").value = "0";
   document.getElementById("prod-descripcion").value = "";
@@ -1005,7 +1004,6 @@ async function editarProducto(id) {
   document.getElementById("modal-producto-titulo").textContent = "Editar Producto";
   document.getElementById("prod-id").value = p.id_producto;
   document.getElementById("prod-nombre").value = p.nombre;
-  document.getElementById("prod-precio").value = p.precio;
   document.getElementById("prod-margen").value = p.margen_porcentaje || "";
   document.getElementById("prod-stock").value = p.stock;
   document.getElementById("prod-descripcion").value = p.descripcion || "";
