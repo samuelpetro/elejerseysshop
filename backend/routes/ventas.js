@@ -180,6 +180,8 @@ router.post("/", async (req, res) => {
         cantidad: item.cantidad,
         precio_unitario: prod[0].precio,
         subtotal: lineaSubtotal,
+        talla: item.talla || null,
+        version: item.version || null,
       });
     }
 
@@ -209,9 +211,15 @@ router.post("/", async (req, res) => {
     // Insertar detalle y descontar stock
     for (const d of detalles) {
       await conn.query(
-        "INSERT INTO detalle_ventas (id_venta, id_producto, cantidad, precio_unitario, subtotal) VALUES (?, ?, ?, ?, ?)",
-        [id_venta, d.id_producto, d.cantidad, d.precio_unitario, d.subtotal]
+        "INSERT INTO detalle_ventas (id_venta, id_producto, cantidad, precio_unitario, subtotal, talla, version) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        [id_venta, d.id_producto, d.cantidad, d.precio_unitario, d.subtotal, d.talla || null, d.version || null]
       );
+      if (d.talla && d.version) {
+        await conn.query(
+          "UPDATE inventario SET stock = stock - ? WHERE id_producto = ? AND talla = ? AND version = ?",
+          [d.cantidad, d.id_producto, d.talla, d.version]
+        );
+      }
       await conn.query(
         "UPDATE productos SET stock = stock - ? WHERE id_producto = ?",
         [d.cantidad, d.id_producto]

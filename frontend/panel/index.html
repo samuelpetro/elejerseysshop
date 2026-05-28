@@ -525,6 +525,23 @@
   </div>
 </div>
 
+<!-- Modal: Seleccionar Talla y Versión -->
+<div class="modal-overlay" id="modal-talla-version">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header">
+      <div class="modal-title">Seleccionar Talla y Versión</div>
+      <button class="modal-close" onclick="cerrarModal('modal-talla-version')">✕</button>
+    </div>
+    <div class="modal-body" id="modal-talla-body">
+      <div class="loading"><div class="spinner"></div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cerrarModal('modal-talla-version')">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmarTallaVersion()">Agregar al carrito</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal: Detalle Venta -->
 <div class="modal-overlay" id="modal-venta-detalle">
   <div class="modal" style="max-width:600px">
@@ -820,8 +837,8 @@
 <!-- ============================================================
      SCRIPTS
      ============================================================ -->
-<script src="js/api.js?v=20260528-1"></script>
-<script src="js/app.js?v=20260528-1"></script>
+<script src="js/api.js?v=20260528-2"></script>
+<script src="js/app.js?v=20260528-2"></script>
 
 </body>
 </html>

@@ -1076,6 +1076,73 @@ async function eliminarProducto(id, nombre) {
   }
 }
 
+let _pendingProductId = null;
+
+function abrirModalTallaVersion(id) {
+  _pendingProductId = id;
+  const prod = _productos.find(p => p.id_producto === id);
+  if (!prod) return;
+  
+  API.getProducto(id).then(data => {
+    const inv = data.inventario || [];
+    const tallas = ["S","M","L","XL","XXL"];
+    const versiones = ["Fan","Player"];
+    
+    let html = `<div style="margin-bottom:12px;font-weight:bold">${prod.nombre}</div>`;
+    html += `<table style="width:100%;border-collapse:collapse;font-size:13px">`;
+    html += `<thead><tr style="background:#f0f0f0"><th style="padding:6px">Talla</th>`;
+    versiones.forEach(v => html += `<th style="padding:6px;text-align:center">${v}</th>`);
+    html += `</tr></thead><tbody>`;
+    
+    tallas.forEach(t => {
+      html += `<tr><td style="padding:6px;font-weight:bold">${t}</td>`;
+      versiones.forEach(v => {
+        const item = inv.find(i => i.talla === t && i.version === v);
+        const stock = item ? item.stock : 0;
+        html += `<td style="padding:4px;text-align:center">
+          <input type="number" class="form-control" id="tv-${t}-${v}" 
+                 value="0" min="0" max="${stock}" 
+                 style="width:60px;text-align:center;padding:4px">
+          <div style="font-size:10px;color:#999">disp: ${stock}</div>
+        </td>`;
+      });
+      html += `</tr>`;
+    });
+    html += `</tbody></table>`;
+    html += `<div style="margin-top:8px;font-size:12px;color:var(--text-muted)">Selecciona las cantidades por talla y versión</div>`;
+    
+    document.getElementById("modal-talla-body").innerHTML = html;
+    abrirModal("modal-talla-version");
+  }).catch(err => showToast(err.message, "error"));
+}
+
+function confirmarTallaVersion() {
+  const tallas = ["S","M","L","XL","XXL"];
+  const versiones = ["Fan","Player"];
+  let added = false;
+  
+  tallas.forEach(t => {
+    versiones.forEach(v => {
+      const cant = parseInt(document.getElementById(`tv-${t}-${v}`).value) || 0;
+      if (cant > 0) {
+        const key = `${_pendingProductId}-${t}-${v}`;
+        const existing = _carrito.findIndex(i => i._key === key);
+        if (existing >= 0) {
+          _carrito[existing].cantidad += cant;
+        } else {
+          const prod = _productos.find(p => p.id_producto === _pendingProductId);
+          _carrito.push({ ...prod, cantidad: cant, talla: t, version: v, _key: key });
+        }
+        added = true;
+      }
+    });
+  });
+  
+  if (!added) { showToast("Selecciona al menos una cantidad.", "error"); return; }
+  cerrarModal("modal-talla-version");
+  renderCarrito();
+}
+
 // ============================================================
 // PUNTO DE VENTA
 // ============================================================
@@ -1109,7 +1176,7 @@ function renderTablaProductosVenta(lista) {
       <td>${p.stock}</td>
       <td>
         <button class="btn btn-primary btn-sm" ${p.stock < 1 ? 'disabled' : ''}
-                onclick="agregarAlCarrito(${p.id_producto})">
+                onclick="${esCamiseta(p.id_categoria) ? `abrirModalTallaVersion(${p.id_producto})` : `agregarAlCarrito(${p.id_producto})`}">
           + Agregar
         </button>
       </td>
@@ -1386,9 +1453,10 @@ function renderCarrito() {
   el.innerHTML = _carrito.map(item => {
     const sub = item.precio * item.cantidad;
     subtotal += sub;
+    const tv = item.talla ? ` (${item.talla} | ${item.version})` : '';
     return `
       <div class="cart-item">
-        <div class="cart-item-name">${item.nombre}</div>
+        <div class="cart-item-name">${item.nombre}${tv}</div>
         <div class="cart-item-qty">
           <button class="qty-btn" onclick="cambiarCantidad(${item.id_producto}, -1)">-</button>
           <span>${item.cantidad}</span>
@@ -1419,7 +1487,12 @@ async function procesarVenta() {
 
   try {
     const id_cliente = document.getElementById("venta-cliente").value || null;
-    const items = _carrito.map(i => ({ id_producto: i.id_producto, cantidad: i.cantidad }));
+    const items = _carrito.map(i => ({ 
+      id_producto: i.id_producto, 
+      cantidad: i.cantidad,
+      talla: i.talla || null,
+      version: i.version || null
+    }));
     const descVal = parseFloat(document.getElementById("venta-descuento")?.value) || 0;
     const descTipo = document.getElementById("venta-descuento-tipo")?.value || "monto";
 

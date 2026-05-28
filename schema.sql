@@ -117,6 +117,8 @@ CREATE TABLE IF NOT EXISTS detalle_ventas (
   cantidad INT NOT NULL,
   precio_unitario DECIMAL(10,2) NOT NULL,
   subtotal DECIMAL(10,2) NOT NULL,
+  talla VARCHAR(10) DEFAULT NULL,
+  version VARCHAR(20) DEFAULT NULL,
   FOREIGN KEY (id_venta) REFERENCES ventas(id_venta) ON DELETE CASCADE,
   FOREIGN KEY (id_producto) REFERENCES productos(id_producto)
 ) ENGINE=InnoDB;
