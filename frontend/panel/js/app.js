@@ -1146,7 +1146,11 @@ function confirmarTallaVersion() {
 // ============================================================
 async function loadVentas() {
   try {
-    [_productos, _clientes] = await Promise.all([API.getProductos(), API.getClientes()]);
+    [_productos, _clientes, _categorias] = await Promise.all([
+      API.getProductos(),
+      API.getClientes(),
+      API.getCategorias().catch(() => _categorias || []),
+    ]);
     renderTablaProductosVenta(_productos);
 
     // Llenar select de clientes
@@ -1323,20 +1327,8 @@ function abrirModalStock(id) {
     document.getElementById("modal-stock-titulo").textContent = "Agregar Stock" + (p ? " - " + p.nombre : "");
     document.getElementById("stock-cantidad").value = "";
     document.getElementById("stock-precio-compra").value = "";
-    document.getElementById("stock-precio-total-simple").value = "";
     document.getElementById("stock-referencia-simple").value = "";
-    
-    // Listeners para modo simple
-    document.getElementById("stock-cantidad").oninput = updateStockSummary;
-    document.getElementById("stock-precio-compra").oninput = updateStockSummary;
-    document.getElementById("stock-precio-total-simple").oninput = updateStockSummary;
   }
-  
-  // Resetear modo de costo
-  document.querySelector("input[name='cost-mode'][value='unit']").checked = true;
-  document.getElementById("stock-costo-total-global").value = "";
-  document.getElementById("stock-costo-total-global").oninput = updateStockSummary;
-  toggleCostMode("unit");
 
   // Populate supplier dropdown
   API.getProveedores().then(provs => {
@@ -1357,52 +1349,26 @@ async function guardarStock() {
   const modoTallas = document.getElementById("stock-modo-tallas");
   const isGrid = modoTallas.style.display !== "none";
 
-  const costMode = document.querySelector("input[name='cost-mode']:checked").value; // 'unit' o 'total'
-
   try {
     if (isGrid) {
       const items = [];
-      let totalQty = 0;
-      
       ["S","M","L","XL","XXL"].forEach(t => {
         ["Fan","Player"].forEach(v => {
           const c = parseInt(document.getElementById("stock-t-"+t+"-"+v).value) || 0;
-          const p = costMode === "unit" ? (parseFloat(document.getElementById("stock-p-"+t+"-"+v).value) || 0) : 0;
-          if (c > 0) {
-            items.push({ talla: t, version: v, cantidad: c, precio_compra: p });
-            totalQty += c;
-          }
+          const p = parseFloat(document.getElementById("stock-p-"+t+"-"+v).value) || 0;
+          if (c > 0 && p > 0) items.push({ talla: t, version: v, cantidad: c, precio_compra: p });
         });
       });
-
-      if (!items.length) { showToast("Ingresa al menos una cantidad.", "error"); return; }
-
-      if (costMode === "total") {
-        const totalCost = parseFloat(document.getElementById("stock-costo-total-global").value) || 0;
-        if (totalCost <= 0) { showToast("Ingresa el costo total del paquete.", "error"); return; }
-        const unitPrice = totalCost / totalQty;
-        items.forEach(i => i.precio_compra = unitPrice);
-      } else {
-        if (items.some(i => i.precio_compra <= 0)) { showToast("Ingresa el precio de compra para cada talla.", "error"); return; }
-      }
-
+      if (!items.length) { showToast("Ingresa cantidad y precio en al menos una talla.", "error"); return; }
       const idProveedorGrid = document.getElementById("stock-proveedor-grid")?.value || null;
       await API.agregarStock(_stockProductId, { items, referencia: document.getElementById("stock-referencia").value || "compra", id_proveedor: idProveedorGrid });
       showToast("Stock por tallas agregado.", "success");
     } else {
       const c = parseInt(document.getElementById("stock-cantidad").value);
-      let p = 0;
-      
-      if (costMode === "unit") {
-        p = parseFloat(document.getElementById("stock-precio-compra").value);
-      } else {
-        const total = parseFloat(document.getElementById("stock-precio-total-simple").value);
-        if (total > 0 && c > 0) p = total / c;
-      }
-
-      if (!c || c <= 0) { showToast("Ingresa una cantidad válida.", "error"); return; }
+      const p = parseFloat(document.getElementById("stock-precio-compra").value);
+      if (!c || c <= 0 || !p || p <= 0) { showToast("Cantidad y precio requeridos.", "error"); return; }
       const idProveedorSimple = document.getElementById("stock-proveedor")?.value || null;
-      await API.agregarStock(_stockProductId, { cantidad: c, referencia: document.getElementById("stock-referencia-simple").value || "compra", id_proveedor: idProveedorSimple });
+      await API.agregarStock(_stockProductId, { cantidad: c, precio_compra: p, referencia: document.getElementById("stock-referencia-simple").value || "compra", id_proveedor: idProveedorSimple });
       showToast("+"+c+" unidades agregadas.", "success");
     }
     cerrarModal("modal-stock");

@@ -627,16 +627,12 @@
       <input type="hidden" id="stock-product-id">
       <div id="stock-modo-simple">
         <div class="form-group"><label class="form-label">Cantidad</label><input type="number" class="form-control" id="stock-cantidad" min="1" placeholder="Unidades"></div>
+        <div class="form-group"><label class="form-label">Precio de compra (c/u)</label><input type="number" class="form-control" id="stock-precio-compra" min="0" step="100" placeholder="Costo por unidad"></div>
         <div class="form-group">
           <label class="form-label">Proveedor</label>
           <select class="form-control" id="stock-proveedor">
             <option value="">Seleccionar proveedor...</option>
           </select>
-        </div>
-        <input type="hidden" id="stock-precio-compra" value="0">
-        <div class="form-group" id="stock-group-precio-total" style="display:none">
-          <label class="form-label">Costo Total del Paquete</label>
-          <input type="number" class="form-control" id="stock-precio-total-simple" min="0" step="1" placeholder="Ej: 500.000 para 100 unidades">
         </div>
       </div>
       <div id="stock-modo-tallas" style="display:none">
@@ -657,23 +653,7 @@
         <div class="form-group" style="margin-top:8px; display: none;"><label class="form-label">Referencia (opcional)</label><input type="text" class="form-control" id="stock-referencia" placeholder="Factura #"></div>
       </div>
       
-      <!-- Selector de modo de costo -->
-      <div style="background:var(--bg-secondary);padding:10px;border-radius:8px;margin-top:10px;display:flex;flex-direction:column;gap:8px">
-        <div style="font-weight:bold;font-size:12px">¿Cómo quieres ingresar el costo?</div>
-        <div style="display:flex;gap:16px;font-size:13px">
-          <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
-            <input type="radio" name="cost-mode" value="unit" checked onchange="toggleCostMode('unit')"> Por unidad / sub-paquete
-          </label>
-          <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
-            <input type="radio" name="cost-mode" value="total" onchange="toggleCostMode('total')"> Valor total del paquete completo
-          </label>
-        </div>
-        <div id="cost-total-batch-container" style="display:none;margin-top:4px">
-          <label class="form-label" style="font-size:12px;margin-bottom:2px">Ingresa el valor total de toda la compra:</label>
-          <input type="number" class="form-control" id="stock-costo-total-global" placeholder="Costo total de todas las unidades">
-          <div id="stock-summary-total" style="font-size:11px;color:var(--text-accent);margin-top:4px;font-weight:bold"></div>
-        </div>
-      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px">El precio de venta se calculará automáticamente</div>
 
       <div id="stock-modo-simple-info" style="display: none;"><div class="form-group" style="margin-top:8px"><label class="form-label">Referencia (opcional)</label><input type="text" class="form-control" id="stock-referencia-simple" placeholder="Factura #"></div></div>
     </div>
