@@ -80,6 +80,7 @@ const API = {
   updateCliente:    (id, body) => apiFetch(`/clientes/${id}`, { method: "PUT", body: JSON.stringify(body) }),
   resetClientePass: (id)   => apiFetch(`/clientes/${id}/reset-password`, { method: "PUT" }),
   deleteCliente:    (id)   => apiFetch(`/clientes/${id}`, { method: "DELETE" }),
+  toggleCliente:    (id)   => apiFetch(`/clientes/${id}/toggle-activo`, { method: "PUT" }),
 
   // Ventas
   getVentas:     ()     => apiFetch("/ventas"),

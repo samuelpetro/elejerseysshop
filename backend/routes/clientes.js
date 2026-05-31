@@ -15,10 +15,10 @@ const { verificarToken } = require("../middleware/auth");
 
 router.use(verificarToken);
 
-// GET /api/clientes - Listar todos
+// GET /api/clientes - Listar todos (incluye activos e inactivos)
 router.get("/", async (req, res) => {
   try {
-    const [rows] = await db.query("SELECT * FROM clientes WHERE activo = 1 ORDER BY nombre ASC");
+    const [rows] = await db.query("SELECT * FROM clientes ORDER BY activo DESC, nombre ASC");
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: "Error obteniendo clientes." });
@@ -90,16 +90,20 @@ router.put("/:id/reset-password", async (req, res) => {
   }
 });
 
-// DELETE /api/clientes/:id
-router.delete("/:id", async (req, res) => {
+// PUT /api/clientes/:id/toggle-activo
+router.put("/:id/toggle-activo", async (req, res) => {
   try {
-    const [[{ total }]] = await db.query("SELECT COUNT(*) AS total FROM pedidos WHERE id_usuario = ? AND estado NOT IN ('entregado','cancelado')", [req.params.id]);
-    if (total > 0) return res.status(409).json({ error: `El cliente tiene ${total} pedido(s) pendiente(s). Debe completarse la entrega antes de eliminar.` });
-    const [r] = await db.query("UPDATE clientes SET activo = 0 WHERE id_cliente = ? AND activo = 1", [req.params.id]);
-    if (r.affectedRows === 0) return res.status(404).json({ error: "Cliente no encontrado o ya inactivo." });
-    res.json({ message: "Cliente desactivado. El historial de compras se conserva." });
+    const [[cliente]] = await db.query("SELECT activo FROM clientes WHERE id_cliente=?", [req.params.id]);
+    if (!cliente) return res.status(404).json({ error: "Cliente no encontrado." });
+    const nuevoEstado = cliente.activo ? 0 : 1;
+    if (nuevoEstado === 0) {
+      const [[{ total }]] = await db.query("SELECT COUNT(*) AS total FROM pedidos WHERE id_usuario = ? AND estado NOT IN ('entregado','cancelado')", [req.params.id]);
+      if (total > 0) return res.status(409).json({ error: `Tiene ${total} pedido(s) pendiente(s).` });
+    }
+    await db.query("UPDATE clientes SET activo=? WHERE id_cliente=?", [nuevoEstado, req.params.id]);
+    res.json({ message: nuevoEstado ? "Cliente activado." : "Cliente desactivado." });
   } catch (err) {
-    res.status(500).json({ error: "Error eliminando cliente." });
+    res.status(500).json({ error: "Error." });
   }
 });
 

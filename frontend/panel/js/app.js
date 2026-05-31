@@ -1486,7 +1486,7 @@ async function loadClientes() {
 function renderTablaClientes(lista) {
   const tbody = document.getElementById("tabla-clientes");
   if (!lista.length) {
-    tbody.innerHTML = `<tr><td colspan="5" class="text-muted" style="text-align:center;padding:24px">No hay clientes registrados.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="text-muted" style="text-align:center;padding:24px">No hay clientes registrados.</td></tr>`;
     return;
   }
   tbody.innerHTML = lista.map(c => `
@@ -1495,9 +1495,10 @@ function renderTablaClientes(lista) {
       <td class="fw-bold">${c.nombre || ''} ${c.apellido || ''}</td>
       <td>${c.telefono || '<span class="text-muted">—</span>'}</td>
       <td>${c.email || '<span class="text-muted">—</span>'}</td>
+      <td><span style="color:${c.activo ? 'var(--success)' : 'var(--danger)'}">${c.activo ? 'Activo' : 'Inactivo'}</span></td>
       <td>
-        <button class="btn btn-secondary btn-sm btn-icon" onclick="editarCliente(${c.id_cliente})">✏️</button>
-        <button class="btn btn-danger btn-sm btn-icon" onclick="eliminarCliente(${c.id_cliente}, '${(c.nombre||'').replace(/'/g,"\\'")}')">🗑️</button>
+        <button class="btn btn-secondary btn-sm btn-icon" onclick="editarCliente(${c.id_cliente})" title="Editar">✏️</button>
+        <button class="btn btn-${c.activo ? 'warning' : 'success'} btn-sm" onclick="toggleCliente(${c.id_cliente})">${c.activo ? 'Desactivar' : 'Activar'}</button>
       </td>
     </tr>
   `).join("");
@@ -1547,11 +1548,10 @@ async function guardarCliente() {
   }
 }
 
-async function eliminarCliente(id, nombre) {
-  if (!confirm(`¿Desactivar cliente "${nombre}"? El historial se conserva.`)) return;
+async function toggleCliente(id) {
   try {
-    const res = await API.deleteCliente(id);
-    showToast(res.message || "Cliente desactivado.", "info");
+    const res = await API.toggleCliente(id);
+    showToast(res.message, "info");
     loadClientes();
   } catch (err) {
     showToast(err.message, "error");
