@@ -965,6 +965,7 @@ function renderTablaProductos(lista) {
       <td><span class="badge ${p.stock < 5 ? 'badge-low' : 'badge-ok'}">${p.stock < 5 ? 'Bajo' : 'OK'}</span></td>
       <td>
         <button class="btn btn-secondary btn-sm btn-icon" title="Editar" onclick="editarProducto(${p.id_producto})">✏️</button>
+        <button class="btn btn-${p.activo ? 'warning' : 'success'} btn-sm" onclick="toggleProducto(${p.id_producto})">${p.activo ? 'Desactivar' : 'Activar'}</button>
       </td>
     </tr>
   `).join("");
@@ -2386,13 +2387,30 @@ async function loadProveedores() {
         <td>${p.contacto || '<span class="text-muted">—</span>'}</td>
         <td>${p.telefono || '<span class="text-muted">—</span>'}</td>
         <td>${p.email || '<span class="text-muted">—</span>'}</td>
+        <td><span style="color:${p.activo ? 'var(--success)' : 'var(--danger)'}">${p.activo ? 'Activo' : 'Inactivo'}</span></td>
         <td>
           <button class="btn btn-secondary btn-sm btn-icon" onclick="editarProveedor(${p.id_proveedor})">✏️</button>
-          <button class="btn btn-danger btn-sm btn-icon" onclick="eliminarProveedor(${p.id_proveedor}, '${p.nombre.replace(/'/g,"\\'")}')">🗑️</button>
+          <button class="btn btn-${p.activo ? 'warning' : 'success'} btn-sm" onclick="toggleProveedor(${p.id_proveedor})">${p.activo ? 'Desactivar' : 'Activar'}</button>
         </td>
       </tr>
-    `).join("") || '<tr><td colspan="5" class="text-muted" style="text-align:center;padding:24px">Sin proveedores.</td></tr>';
+    `).join("") || '<tr><td colspan="6" class="text-muted" style="text-align:center;padding:24px">Sin proveedores.</td></tr>';
   } catch (err) { showToast("Error: " + err.message, "error"); }
+}
+
+async function toggleProducto(id) {
+  try {
+    const res = await API.toggleProducto(id);
+    showToast(res.message, "info");
+    loadInventario();
+  } catch (err) { showToast(err.message, "error"); }
+}
+
+async function toggleProveedor(id) {
+  try {
+    const res = await API.toggleProveedor(id);
+    showToast(res.message, "info");
+    loadProveedores();
+  } catch (err) { showToast(err.message, "error"); }
 }
 
 function abrirModalProveedor() {

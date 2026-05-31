@@ -119,6 +119,8 @@ const API = {
   createProveedor:  (body) => apiFetch("/proveedores", { method: "POST", body: JSON.stringify(body) }),
   updateProveedor:  (id, body) => apiFetch(`/proveedores/${id}`, { method: "PUT", body: JSON.stringify(body) }),
   deleteProveedor:  (id) => apiFetch(`/proveedores/${id}`, { method: "DELETE" }),
+  toggleProveedor:  (id) => apiFetch(`/proveedores/${id}/toggle-activo`, { method: "PUT" }),
+  toggleProducto:   (id) => apiFetch(`/productos/${id}/toggle-activo`, { method: "PUT" }),
 };
 
 // ============================================================

@@ -8,7 +8,7 @@ router.use(verificarToken, soloAdmin);
 
 router.get("/", async (req, res) => {
   try {
-    const [rows] = await db.query("SELECT * FROM proveedores ORDER BY nombre ASC");
+    const [rows] = await db.query("SELECT * FROM proveedores ORDER BY activo DESC, nombre ASC");
     res.json(rows);
   } catch (err) { res.status(500).json({ error: "Error." }); }
 });
@@ -44,11 +44,13 @@ router.put("/:id", async (req, res) => {
   } catch (err) { res.status(500).json({ error: "Error." }); }
 });
 
-router.delete("/:id", async (req, res) => {
+router.put("/:id/toggle-activo", async (req, res) => {
   try {
-    const [r] = await db.query("DELETE FROM proveedores WHERE id_proveedor=?", [req.params.id]);
-    if (r.affectedRows === 0) return res.status(404).json({ error: "No encontrado." });
-    res.json({ message: "Eliminado." });
+    const [[p]] = await db.query("SELECT activo FROM proveedores WHERE id_proveedor=?", [req.params.id]);
+    if (!p) return res.status(404).json({ error: "No encontrado." });
+    const nuevo = p.activo ? 0 : 1;
+    await db.query("UPDATE proveedores SET activo=? WHERE id_proveedor=?", [nuevo, req.params.id]);
+    res.json({ message: nuevo ? "Proveedor activado." : "Proveedor desactivado." });
   } catch (err) { res.status(500).json({ error: "Error." }); }
 });
 
