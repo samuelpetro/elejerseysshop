@@ -965,7 +965,6 @@ function renderTablaProductos(lista) {
       <td><span class="badge ${p.stock < 5 ? 'badge-low' : 'badge-ok'}">${p.stock < 5 ? 'Bajo' : 'OK'}</span></td>
       <td>
         <button class="btn btn-secondary btn-sm btn-icon" title="Editar" onclick="editarProducto(${p.id_producto})">✏️</button>
-        <button class="btn btn-danger btn-sm btn-icon" title="Eliminar" onclick="eliminarProducto(${p.id_producto}, '${p.nombre.replace(/'/g, "\\'")}')">🗑️</button>
       </td>
     </tr>
   `).join("");
@@ -1178,7 +1177,7 @@ function renderTablaProductosVenta(lista) {
       <td>${p.stock}</td>
       <td>
         <button class="btn btn-primary btn-sm" ${p.stock < 1 ? 'disabled' : ''}
-                onclick="${esCamiseta(p.id_categoria) ? `abrirModalTallaVersion(${p.id_producto})` : `agregarAlCarrito(${p.id_producto})`}">
+                onclick="${(esCamiseta(p.id_categoria) || (p.categoria_nombre||'').toLowerCase().includes('camiseta')) ? `abrirModalTallaVersion(${p.id_producto})` : `agregarAlCarrito(${p.id_producto})`}">
           + Agregar
         </button>
       </td>
