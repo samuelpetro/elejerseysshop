@@ -121,6 +121,7 @@ const API = {
   deleteProveedor:  (id) => apiFetch(`/proveedores/${id}`, { method: "DELETE" }),
   toggleProveedor:  (id) => apiFetch(`/proveedores/${id}/toggle-activo`, { method: "PUT" }),
   toggleProducto:   (id) => apiFetch(`/productos/${id}/toggle-activo`, { method: "PUT" }),
+  toggleDestacado:  (id) => apiFetch(`/productos/${id}/toggle-destacado`, { method: "PUT" }),
 };
 
 // ============================================================

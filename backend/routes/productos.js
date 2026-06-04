@@ -104,9 +104,9 @@ router.get("/destacados", async (req, res) => {
       LEFT JOIN detalle_ventas dv ON p.id_producto = dv.id_producto
       WHERE p.activo = 1
       GROUP BY p.id_producto
-      HAVING total_vendido > 0 OR p.destacado = 1
-      ORDER BY total_vendido DESC, p.creado_en DESC
-      LIMIT 100
+      HAVING p.destacado = 1 OR total_vendido > 0
+      ORDER BY p.destacado DESC, total_vendido DESC, p.creado_en DESC
+      LIMIT 10
     `);
     res.json(rows);
   } catch (err) {
@@ -361,6 +361,19 @@ router.put("/:id/inventario", verificarToken, soloAdmin, async (req, res) => {
 // ------------------------------------------------------------
 // DELETE /api/productos/:id - Desactivar producto (admin)
 // ------------------------------------------------------------
+router.put("/:id/toggle-destacado", verificarToken, soloAdmin, async (req, res) => {
+  try {
+    const [[prod]] = await db.query("SELECT destacado FROM productos WHERE id_producto=?", [req.params.id]);
+    if (!prod) return res.status(404).json({ error: "Producto no encontrado." });
+    if (!prod.destacado) {
+      const [[{ count }]] = await db.query("SELECT COUNT(*) AS count FROM productos WHERE destacado = 1");
+      if (count >= 10) return res.status(409).json({ error: "Máximo 10 productos destacados." });
+    }
+    await db.query("UPDATE productos SET destacado = NOT destacado WHERE id_producto=?", [req.params.id]);
+    res.json({ message: "Destacado actualizado." });
+  } catch (err) { res.status(500).json({ error: "Error." }); }
+});
+
 router.put("/:id/toggle-activo", verificarToken, soloAdmin, async (req, res) => {
   try {
     const [[prod]] = await db.query("SELECT activo, stock FROM productos WHERE id_producto=?", [req.params.id]);
