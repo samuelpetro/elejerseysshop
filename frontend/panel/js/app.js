@@ -1227,28 +1227,6 @@ function updateGridTotal() {
   }));
   document.getElementById("stock-grid-total").value = total > 0 ? total : "";
 }
-    });
-  });
-
-  // Si es modo simple (balones)
-  const qSimple = parseInt(document.getElementById("stock-cantidad")?.value) || 0;
-  if (qSimple > 0 && document.getElementById("stock-modo-simple").style.display !== "none") {
-      totalUnits = qSimple;
-      if (costMode === "unit") {
-          totalCost = qSimple * (parseFloat(document.getElementById("stock-precio-compra").value) || 0);
-      } else {
-          totalCost = parseFloat(document.getElementById("stock-precio-total-simple").value) || 0;
-      }
-  }
-
-  if (costMode === "total") {
-      totalCost = parseFloat(document.getElementById("stock-costo-total-global").value) || 0;
-  }
-
-  if (summaryEl) {
-    summaryEl.innerHTML = `Resumen: ${totalUnits} unidades | Costo Total: ${formatPrice(totalCost)}`;
-  }
-}
 
 function abrirModalStock(id) {
   _stockProductId = id;
