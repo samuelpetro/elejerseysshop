@@ -1050,6 +1050,10 @@ async function editarProducto(id) {
 }
 
 async function guardarProducto() {
+  const btn = document.querySelector("#modal-producto .btn-primary");
+  if (btn.disabled) return;
+  btn.disabled = true;
+
   const id = document.getElementById("prod-id").value;
   const subcat = document.getElementById("prod-subcategoria").value;
   const cat = document.getElementById("prod-categoria").value;
@@ -1063,7 +1067,7 @@ async function guardarProducto() {
   };
 
   if (!body.nombre) {
-    showToast("El nombre es requerido.", "error"); return;
+    showToast("El nombre es requerido.", "error"); btn.disabled = false; return;
   }
 
   try {
@@ -1080,7 +1084,8 @@ async function guardarProducto() {
     if (imagen && productoId) await API.uploadImagen(productoId, imagen);
     cerrarModal("modal-producto");
     loadInventario();
-  } catch (err) { showToast(err.message, "error"); }
+    btn.disabled = false;
+  } catch (err) { showToast(err.message, "error"); btn.disabled = false; }
 }
 
 async function eliminarProducto(id, nombre) {
