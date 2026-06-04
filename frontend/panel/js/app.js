@@ -1031,7 +1031,7 @@ async function editarProducto(id) {
   document.getElementById("prod-imagen").value = "";
   const preview = document.getElementById("prod-img-preview");
   if (p.imagen) {
-    preview.src = `/api/productos/${p.id_producto}/imagen`;
+    preview.src = p.imagen.startsWith("/uploads/") ? p.imagen : `/api/productos/${p.id_producto}/imagen`;
     preview.style.display = "block";
   } else {
     preview.style.display = "none";

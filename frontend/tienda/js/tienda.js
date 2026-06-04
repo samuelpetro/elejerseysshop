@@ -161,8 +161,11 @@ function limpiarFiltros() {
 // TARJETA HTML
 // ============================================================
 function tarjetaHTML(p) {
-  const img = p.imagen
-    ? `<img src="/api/productos/${p.id_producto}/imagen" alt="${p.nombre}" loading="lazy">`
+  const urlImg = p.imagen
+    ? (p.imagen.startsWith("/uploads/") ? p.imagen : `/api/productos/${p.id_producto}/imagen`)
+    : null;
+  const img = urlImg
+    ? `<img src="${urlImg}" alt="${p.nombre}" loading="lazy">`
     : `👕`;
   return `
     <div class="tarjeta-producto" onclick="verProducto(${p.id_producto})">
@@ -222,8 +225,11 @@ async function verProducto(id) {
 }
 
 function renderizarDetalle(p) {
-  const imgPrincipal = p.imagen
-    ? `<img src="/api/productos/${p.id_producto}/imagen" alt="${p.nombre}" id="img-principal-grande">`
+  const urlGrande = p.imagen
+    ? (p.imagen.startsWith("/uploads/") ? p.imagen : `/api/productos/${p.id_producto}/imagen`)
+    : null;
+  const imgPrincipal = urlGrande
+    ? `<img src="${urlGrande}" alt="${p.nombre}" id="img-principal-grande">`
     : `<span style="font-size:100px">👕</span>`;
 
   // Galería adicional
