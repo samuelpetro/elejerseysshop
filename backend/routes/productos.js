@@ -288,7 +288,7 @@ router.post("/:id/imagen", verificarToken, soloAdmin, upload.single("imagen"), a
     res.json({ mensaje: "Imagen subida." });
   } catch (err) {
     console.error("Error imagen:", err.message);
-    res.status(500).json({ error: "Error guardando imagen: " + err.message });
+    res.status(500).json({ error: "Error: " + err.message });
   }
 });
 
