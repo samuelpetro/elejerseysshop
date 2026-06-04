@@ -845,7 +845,7 @@ function descargarPDFCompras() {
 // ============================================================
 async function loadInventario() {
   try {
-    const [prods, cats, costos] = await Promise.all([API.getProductos(), API.getCategorias(), API.getCostos().catch(()=>[])]);
+    const [prods, cats, costos] = await Promise.all([API.getProductos("todos=1"), API.getCategorias(), API.getCostos().catch(()=>[])]);
     _productos = prods.map(p => {
       const c = costos.find(x => x.id_producto == p.id_producto);
       return { ...p, costo_promedio: c?.costo_promedio || p.precio_compra || 0, costo_total: c?.costo_total || 0 };
@@ -2090,7 +2090,7 @@ async function guardarCategoriaPanel() {
 // ============================================================
 async function loadCompras() {
   try {
-    const [prods, cats, costos] = await Promise.all([API.getProductos(), API.getCategorias(), API.getCostos().catch(()=>[])]);
+    const [prods, cats, costos] = await Promise.all([API.getProductos("todos=1"), API.getCategorias(), API.getCostos().catch(()=>[])]);
     _categorias = cats;
     const sel = document.getElementById("filtro-categoria-compra");
     sel.innerHTML = `<option value="">Todas las categorías</option>` + cats.filter(c => !c.parent_id).map(c => `<option value="${c.id_categoria}">${c.nombre}</option>`).join("");

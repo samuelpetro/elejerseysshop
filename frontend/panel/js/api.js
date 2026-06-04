@@ -50,7 +50,7 @@ const API = {
   register: (body) => apiFetch("/auth/register", { method: "POST", body: JSON.stringify(body) }),
 
   // Productos
-  getProductos:  ()     => apiFetch("/productos"),
+  getProductos:  (params) => apiFetch(`/productos${params ? `?${params}` : ""}`),
   getProducto:   (id)   => apiFetch(`/productos/${id}`),
   createProducto:(body) => apiFetch("/productos", { method: "POST", body: JSON.stringify(body) }),
   updateProducto:(id, body) => apiFetch(`/productos/${id}`, { method: "PUT", body: JSON.stringify(body) }),

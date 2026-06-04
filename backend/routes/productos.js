@@ -36,7 +36,7 @@ const { calcularPrecioVenta } = require("../services/priceService");
 // ------------------------------------------------------------
 router.get("/", async (req, res) => {
   try {
-    const { categoria, version, talla, buscar, pagina = 1 } = req.query;
+    const { categoria, version, talla, buscar, pagina = 1, todos } = req.query;
     const limite = Math.min(parseInt(req.query.limite || "1000", 10) || 1000, 1000);
     const offset = (parseInt(pagina) - 1) * limite;
     const params = [];
@@ -44,12 +44,17 @@ router.get("/", async (req, res) => {
     let sql = `
       SELECT DISTINCT p.id_producto, p.nombre, p.descripcion,
              p.precio, p.precio_player, p.precio_compra, p.stock,
-             p.id_categoria, p.imagen, p.destacado, p.creado_en,
+             p.id_categoria, p.imagen, p.destacado, p.activo, p.creado_en,
              c.nombre AS categoria_nombre, c.slug AS categoria_slug, c.parent_id AS categoria_parent_id
       FROM productos p
       LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
-      WHERE p.activo = 1
     `;
+
+    if (todos === "1") {
+      sql += ` WHERE 1=1 `;
+    } else {
+      sql += ` WHERE p.activo = 1 `;
+    }
 
     if (categoria) {
       // Si es categoria padre, incluir hijos
