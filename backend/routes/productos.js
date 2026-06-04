@@ -363,8 +363,9 @@ router.put("/:id/inventario", verificarToken, soloAdmin, async (req, res) => {
 // ------------------------------------------------------------
 router.put("/:id/toggle-activo", verificarToken, soloAdmin, async (req, res) => {
   try {
-    const [[prod]] = await db.query("SELECT activo FROM productos WHERE id_producto=?", [req.params.id]);
+    const [[prod]] = await db.query("SELECT activo, stock FROM productos WHERE id_producto=?", [req.params.id]);
     if (!prod) return res.status(404).json({ error: "Producto no encontrado." });
+    if (prod.activo && prod.stock > 0) return res.status(409).json({ error: `No se puede desactivar. El producto tiene ${prod.stock} unidad(es) en stock.` });
     const nuevo = prod.activo ? 0 : 1;
     await db.query("UPDATE productos SET activo=? WHERE id_producto=?", [nuevo, req.params.id]);
     res.json({ message: nuevo ? "Producto activado." : "Producto desactivado." });

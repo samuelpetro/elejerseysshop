@@ -953,7 +953,10 @@ function renderTablaProductos(lista) {
     tbody.innerHTML = `<tr><td colspan="9" class="text-muted" style="text-align:center;padding:24px">No hay productos registrados.</td></tr>`;
     return;
   }
-  tbody.innerHTML = lista.map(p => `
+  const activos = lista.filter(p => p.activo !== 0);
+  const inactivos = lista.filter(p => p.activo === 0);
+
+  tbody.innerHTML = activos.map(p => `
     <tr>
       <td class="text-muted">#${p.id_producto}</td>
       <td class="fw-bold">${p.nombre}</td>
@@ -965,10 +968,26 @@ function renderTablaProductos(lista) {
       <td><span class="badge ${p.stock < 5 ? 'badge-low' : 'badge-ok'}">${p.stock < 5 ? 'Bajo' : 'OK'}</span></td>
       <td>
         <button class="btn btn-secondary btn-sm btn-icon" title="Editar" onclick="editarProducto(${p.id_producto})">✏️</button>
-        <button class="btn btn-${p.activo ? 'warning' : 'success'} btn-sm" onclick="toggleProducto(${p.id_producto})">${p.activo ? 'Desactivar' : 'Activar'}</button>
       </td>
     </tr>
   `).join("");
+
+  const tbodyInactivos = document.getElementById("tabla-productos-inactivos-body");
+  if (tbodyInactivos) {
+    tbodyInactivos.innerHTML = inactivos.map(p => `
+      <tr>
+        <td class="text-muted">#${p.id_producto}</td>
+        <td class="fw-bold">${p.nombre}</td>
+        <td>${p.categoria_nombre || '<span class="text-muted">—</span>'}</td>
+        <td>${p.stock}</td>
+        <td>
+          <button class="btn btn-success btn-sm" onclick="reactivarProducto(${p.id_producto})">Activar</button>
+        </td>
+      </tr>
+    `).join("") || '<tr><td colspan="5" class="text-muted" style="text-align:center;padding:24px">No hay productos inactivos.</td></tr>';
+  }
+
+  document.getElementById("btn-ver-inactivos").style.display = inactivos.length > 0 ? "inline-flex" : "none";
 }
 
 function filtrarProductos() {
@@ -2375,12 +2394,27 @@ async function loadProveedores() {
   } catch (err) { showToast("Error: " + err.message, "error"); }
 }
 
-async function toggleProducto(id) {
+async function reactivarProducto(id) {
   try {
     const res = await API.toggleProducto(id);
-    showToast(res.message, "info");
+    showToast(res.message, "success");
     loadInventario();
   } catch (err) { showToast(err.message, "error"); }
+}
+
+function toggleInactivos() {
+  const active = document.getElementById("tabla-productos-activos");
+  const inactive = document.getElementById("tabla-productos-inactivos");
+  const btn = document.getElementById("btn-ver-inactivos");
+  if (active.style.display === "none") {
+    active.style.display = "block";
+    inactive.style.display = "none";
+    btn.textContent = "📂 Inactivos";
+  } else {
+    active.style.display = "none";
+    inactive.style.display = "block";
+    btn.textContent = "📂 Activos";
+  }
 }
 
 async function toggleProveedor(id) {

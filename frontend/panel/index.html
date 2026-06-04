@@ -163,26 +163,50 @@
                      oninput="filtrarProductos()">
               <button class="btn btn-primary btn-sm" onclick="abrirModalProducto()">+ Nuevo</button>
               <button class="btn btn-secondary btn-sm" onclick="abrirModalProveedor()">🏢 + Proveedor</button>
+              <button class="btn btn-secondary btn-sm" onclick="toggleInactivos()" id="btn-ver-inactivos">📂 Inactivos</button>
             </div>
           </div>
           <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Nombre</th>
-                  <th>Categoría</th>
-                  <th>Precio</th>
-                  <th>Stock</th>
-                  <th>Costo Prom</th>
-                  <th>Costo Total</th>
-                  <th>Estado</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody id="tabla-productos">
-                <tr><td colspan="7"><div class="loading"><div class="spinner"></div></div></td></tr>
-              </tbody>
+            <div id="tabla-productos-activos">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Categoría</th>
+                    <th>Precio</th>
+                    <th>Stock</th>
+                    <th>Costo Prom</th>
+                    <th>Costo Total</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="tabla-productos">
+                  <tr><td colspan="7"><div class="loading"><div class="spinner"></div></div></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div id="tabla-productos-inactivos" style="display:none">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+                <div class="fw-bold">📂 Productos Inactivos</div>
+                <button class="btn btn-secondary btn-sm" onclick="toggleInactivos()">Volver a activos</button>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Categoría</th>
+                    <th>Stock</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="tabla-productos-inactivos-body">
+                  <tr><td colspan="5"><div class="loading"><div class="spinner"></div></div></td></tr>
+                </tbody>
+              </table>
+            </div>
             </table>
           </div>
         </div>
@@ -819,8 +843,8 @@
 <!-- ============================================================
      SCRIPTS
      ============================================================ -->
-<script src="js/api.js?v=20260529-1"></script>
-<script src="js/app.js?v=20260529-1"></script>
+<script src="js/api.js?v=20260529-2"></script>
+<script src="js/app.js?v=20260529-2"></script>
 
 </body>
 </html>
