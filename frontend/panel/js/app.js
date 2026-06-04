@@ -1083,17 +1083,15 @@ async function guardarProducto() {
     }
     const archivo = document.getElementById("prod-imagen").files[0];
     if (archivo && productoId) {
-      const reader = new FileReader();
       const base64 = await new Promise((resolve, reject) => {
-        reader.onload = () => {
-          const result = reader.result;
-          const partes = result.split(",");
-          resolve(partes[1]);
-        };
+        const reader = new FileReader();
+        reader.onload = () => { const r = reader.result; resolve(r.split(",")[1]); };
         reader.onerror = reject;
         reader.readAsDataURL(archivo);
       });
-      await API.uploadImagenBase64(productoId, base64, archivo.type);
+      try {
+        await API.uploadImagenBase64(productoId, base64, archivo.type);
+      } catch (e) { showToast("Imagen no subida: " + e.message, "error"); }
     }
     cerrarModal("modal-producto");
     loadInventario();
