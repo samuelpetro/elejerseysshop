@@ -27,7 +27,6 @@ const path = require("path");
 const db = require("../db");
 const { verificarToken, soloAdmin } = require("../middleware/auth");
 const upload = require("../middleware/upload");
-const uploadMemory = upload.uploadMemory;
 const KardexPonderado = require("../services/kardex_ponderado");
 const { calcularPrecioVenta } = require("../services/priceService");
 
@@ -277,14 +276,16 @@ router.put("/:id", verificarToken, soloAdmin, async (req, res) => {
 // POST /api/productos/:id/imagen - Subir imagen principal (admin)
 // Form-data: imagen (archivo)
 // ------------------------------------------------------------
-router.post("/:id/imagen", verificarToken, soloAdmin, upload.single("imagen"), async (req, res) => {
+router.post("/:id/imagen", verificarToken, soloAdmin, (req, res, next) => {
+  upload.uploadMemory.single("imagen")(req, res, (err) => {
+    if (err) return res.status(400).json({ error: err.message });
+    next();
+  });
+}, async (req, res) => {
   if (!req.file) return res.status(400).json({ error: "No se recibió imagen." });
   try {
-    const fs = require("fs");
-    const buffer = fs.readFileSync(req.file.path);
-    const base64 = buffer.toString("base64");
+    const base64 = req.file.buffer.toString("base64");
     await db.query("UPDATE productos SET imagen=?, imagen_tipo=? WHERE id_producto=?", [base64, req.file.mimetype, req.params.id]);
-    try { fs.unlinkSync(req.file.path); } catch (_) {}
     res.json({ mensaje: "Imagen subida." });
   } catch (err) {
     console.error("Error imagen:", err.message);
