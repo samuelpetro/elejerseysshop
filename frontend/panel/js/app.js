@@ -1200,27 +1200,6 @@ function esCamiseta(idCategoria) {
   return categoriaEsCamiseta(idCategoria);
 }
 
-function toggleCostMode(modo) {
-  const isTotal = modo === "total";
-  const unitGroup = document.getElementById("stock-group-precio-unitario");
-  const totalGroup = document.getElementById("stock-group-precio-total");
-  const batchContainer = document.getElementById("cost-total-batch-container");
-  
-  // Para modo simple
-  if (unitGroup) unitGroup.style.display = isTotal ? "none" : "block";
-  if (totalGroup) totalGroup.style.display = isTotal ? "block" : "none";
-  
-  // Para modo tallas
-  if (batchContainer) batchContainer.style.display = isTotal ? "block" : "none";
-  
-  // Deshabilitar inputs de precio y subtotal en el grid si es modo total
-  document.querySelectorAll("[id^='stock-p-'], [id^='stock-s-']").forEach(input => {
-    input.disabled = isTotal;
-    if (isTotal) input.value = "";
-  });
-  updateStockSummary();
-}
-
 function updateStockRow(t, v, field) {
   const qEl = document.getElementById(`stock-t-${t}-${v}`);
   const pEl = document.getElementById(`stock-p-${t}-${v}`);
@@ -1237,21 +1216,17 @@ function updateStockRow(t, v, field) {
     if (q > 0 && s > 0) pEl.value = (s / q).toFixed(0);
     else pEl.value = "";
   }
-  updateStockSummary();
+  updateGridTotal();
 }
 
-function updateStockSummary() {
-  const costMode = document.querySelector("input[name='cost-mode']:checked")?.value || "unit";
-  const summaryEl = document.getElementById("stock-summary-total");
-  let totalUnits = 0;
-  let totalCost = 0;
-
-  ["S","M","L","XL","XXL"].forEach(t => {
-    ["Fan","Player"].forEach(v => {
-      const q = parseInt(document.getElementById(`stock-t-${t}-${v}`)?.value) || 0;
-      const s = parseFloat(document.getElementById(`stock-s-${t}-${v}`)?.value) || 0;
-      totalUnits += q;
-      if (costMode === "unit") totalCost += s;
+function updateGridTotal() {
+  let total = 0;
+  ["S","M","L","XL","XXL"].forEach(t => ["Fan","Player"].forEach(v => {
+    const s = parseFloat(document.getElementById(`stock-s-${t}-${v}`)?.value) || 0;
+    total += s;
+  }));
+  document.getElementById("stock-grid-total").value = total > 0 ? total : "";
+}
     });
   });
 
@@ -1319,6 +1294,7 @@ function abrirModalStock(id) {
       html += `</tr>`;
     });
     document.getElementById("stock-grid-body").innerHTML = html;
+    document.getElementById("stock-grid-total").value = "";
     document.getElementById("stock-referencia").value = "";
   } else {
     modoSimple.style.display = "block";
@@ -1326,19 +1302,16 @@ function abrirModalStock(id) {
     simpleInfo.style.display = "block";
     document.getElementById("modal-stock-titulo").textContent = "Agregar Stock" + (p ? " - " + p.nombre : "");
     document.getElementById("stock-cantidad").value = "";
-    document.getElementById("stock-precio-compra").value = "";
-    document.getElementById("stock-referencia-simple").value = "";
+    document.getElementById("stock-precio-unitario").value = "";
+    document.getElementById("stock-precio-total").value = "";
+    document.getElementById("stock-referencia").value = "";
   }
 
-  // Populate supplier dropdown
+  // Populate supplier dropdown (shared)
   API.getProveedores().then(provs => {
     const sel = document.getElementById("stock-proveedor");
     if (sel) {
       sel.innerHTML = '<option value="">Sin proveedor</option>' + provs.map(p => `<option value="${p.id_proveedor}">${p.nombre}</option>`).join("");
-    }
-    const selGrid = document.getElementById("stock-proveedor-grid");
-    if (selGrid) {
-      selGrid.innerHTML = '<option value="">Sin proveedor</option>' + provs.map(p => `<option value="${p.id_proveedor}">${p.nombre}</option>`).join("");
     }
   }).catch(() => {});
 
@@ -1360,15 +1333,17 @@ async function guardarStock() {
         });
       });
       if (!items.length) { showToast("Ingresa cantidad y precio en al menos una talla.", "error"); return; }
-      const idProveedorGrid = document.getElementById("stock-proveedor-grid")?.value || null;
-      await API.agregarStock(_stockProductId, { items, referencia: document.getElementById("stock-referencia").value || "compra", id_proveedor: idProveedorGrid });
+      const idProv = document.getElementById("stock-proveedor")?.value || null;
+      await API.agregarStock(_stockProductId, { items, referencia: document.getElementById("stock-referencia").value || "compra", id_proveedor: idProv });
       showToast("Stock por tallas agregado.", "success");
     } else {
       const c = parseInt(document.getElementById("stock-cantidad").value);
-      const p = parseFloat(document.getElementById("stock-precio-compra").value);
-      if (!c || c <= 0 || !p || p <= 0) { showToast("Cantidad y precio requeridos.", "error"); return; }
+      let pu = parseFloat(document.getElementById("stock-precio-unitario").value);
+      const pt = parseFloat(document.getElementById("stock-precio-total").value);
+      if (!c || c <= 0) { showToast("Ingresa una cantidad válida.", "error"); return; }
+      if (!pu || pu <= 0) { if (pt > 0) pu = pt / c; else { showToast("Ingresa precio unitario o total.", "error"); return; } }
       const idProveedorSimple = document.getElementById("stock-proveedor")?.value || null;
-      await API.agregarStock(_stockProductId, { cantidad: c, precio_compra: p, referencia: document.getElementById("stock-referencia-simple").value || "compra", id_proveedor: idProveedorSimple });
+      await API.agregarStock(_stockProductId, { cantidad: c, precio_compra: pu, referencia: document.getElementById("stock-referencia").value || "compra", id_proveedor: idProveedorSimple });
       showToast("+"+c+" unidades agregadas.", "success");
     }
     cerrarModal("modal-stock");
@@ -1376,6 +1351,34 @@ async function guardarStock() {
     const active = document.querySelector(".nav-item.active");
     if (active) navigateTo(active.dataset.page);
   } catch (err) { showToast(err.message, "error"); }
+}
+
+function calcSimpleFromUnit() {
+  const q = parseInt(document.getElementById("stock-cantidad").value) || 0;
+  const pu = parseFloat(document.getElementById("stock-precio-unitario").value) || 0;
+  document.getElementById("stock-precio-total").value = q > 0 && pu > 0 ? (q * pu) : "";
+}
+
+function calcSimpleFromTotal() {
+  const q = parseInt(document.getElementById("stock-cantidad").value) || 0;
+  const pt = parseFloat(document.getElementById("stock-precio-total").value) || 0;
+  document.getElementById("stock-precio-unitario").value = q > 0 && pt > 0 ? (pt / q) : "";
+}
+
+function calcSimpleTotal() { if (document.getElementById("stock-precio-unitario").value) calcSimpleFromUnit(); else if (document.getElementById("stock-precio-total").value) calcSimpleFromTotal(); }
+
+function distributeGridTotal() {
+  const total = parseFloat(document.getElementById("stock-grid-total").value) || 0;
+  if (total <= 0) return;
+  let totalQty = 0;
+  const items = [];
+  ["S","M","L","XL","XXL"].forEach(t => ["Fan","Player"].forEach(v => {
+    const c = parseInt(document.getElementById("stock-t-"+t+"-"+v).value) || 0;
+    if (c > 0) { totalQty += c; items.push({ t, v, c }); }
+  }));
+  if (totalQty <= 0) return;
+  const unitPrice = total / totalQty;
+  items.forEach(i => document.getElementById("stock-p-"+i.t+"-"+i.v).value = Math.round(unitPrice));
 }
 
 function agregarAlCarrito(id) {
