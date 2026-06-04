@@ -21,4 +21,8 @@ const fileFilter = (req, file, cb) => {
   else cb(new Error("Solo imágenes JPG, PNG o WEBP."), false);
 };
 
-module.exports = multer({ storage, fileFilter, limits: { fileSize: 5 * 1024 * 1024 } });
+const uploadDisk = multer({ storage, fileFilter, limits: { fileSize: 5 * 1024 * 1024 } });
+const uploadMemory = multer({ storage: multer.memoryStorage(), fileFilter, limits: { fileSize: 5 * 1024 * 1024 } });
+
+module.exports = uploadDisk;
+module.exports.uploadMemory = uploadMemory;
