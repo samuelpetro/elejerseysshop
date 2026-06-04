@@ -276,16 +276,11 @@ router.put("/:id", verificarToken, soloAdmin, async (req, res) => {
 // POST /api/productos/:id/imagen - Subir imagen principal (admin)
 // Form-data: imagen (archivo)
 // ------------------------------------------------------------
-router.post("/:id/imagen", verificarToken, soloAdmin, (req, res, next) => {
-  upload.uploadMemory.single("imagen")(req, res, (err) => {
-    if (err) return res.status(400).json({ error: err.message });
-    next();
-  });
-}, async (req, res) => {
-  if (!req.file) return res.status(400).json({ error: "No se recibió imagen." });
+router.post("/:id/imagen", verificarToken, soloAdmin, async (req, res) => {
   try {
-    const base64 = req.file.buffer.toString("base64");
-    await db.query("UPDATE productos SET imagen=?, imagen_tipo=? WHERE id_producto=?", [base64, req.file.mimetype, req.params.id]);
+    const { base64, tipo } = req.body;
+    if (!base64) return res.status(400).json({ error: "No se recibió imagen." });
+    await db.query("UPDATE productos SET imagen=?, imagen_tipo=? WHERE id_producto=?", [base64, tipo || "image/jpeg", req.params.id]);
     res.json({ mensaje: "Imagen subida." });
   } catch (err) {
     console.error("Error imagen:", err.message);

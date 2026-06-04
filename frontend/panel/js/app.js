@@ -1081,8 +1081,20 @@ async function guardarProducto() {
       productoId = creado.id_producto;
       showToast("Producto creado. El stock se gestiona desde Compras.", "success");
     }
-    const imagen = document.getElementById("prod-imagen").files[0];
-    if (imagen && productoId) await API.uploadImagen(productoId, imagen);
+    const archivo = document.getElementById("prod-imagen").files[0];
+    if (archivo && productoId) {
+      const reader = new FileReader();
+      const base64 = await new Promise((resolve, reject) => {
+        reader.onload = () => {
+          const result = reader.result;
+          const partes = result.split(",");
+          resolve(partes[1]);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(archivo);
+      });
+      await API.uploadImagenBase64(productoId, base64, archivo.type);
+    }
     cerrarModal("modal-producto");
     loadInventario();
     btn.disabled = false;

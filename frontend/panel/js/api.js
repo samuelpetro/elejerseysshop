@@ -60,6 +60,7 @@ const API = {
     const token = localStorage.getItem("td_token");
     return fetch(`${API_BASE}/productos/${id}/imagen`, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: fd }).then(async (res) => { const data = await res.json(); if (!res.ok) throw new Error(data.error || "Error subiendo imagen."); return data; });
   },
+  uploadImagenBase64: (id, base64, tipo) => apiFetch(`/productos/${id}/imagen`, { method: "POST", body: JSON.stringify({ base64, tipo }) }),
   agregarStock:   (id, body) => apiFetch(`/productos/${id}/agregar-stock`, { method: "POST", body: JSON.stringify(body) }),
   getCostos:      () => apiFetch("/productos/costos"),
   getComprasMovimientos: () => apiFetch("/productos/compras"),
