@@ -968,6 +968,7 @@ function renderTablaProductos(lista) {
       <td><span class="badge ${p.stock < 5 ? 'badge-low' : 'badge-ok'}">${p.stock < 5 ? 'Bajo' : 'OK'}</span></td>
       <td>
         <button class="btn btn-secondary btn-sm btn-icon" title="Editar" onclick="editarProducto(${p.id_producto})">✏️</button>
+        ${p.stock === 0 ? `<button class="btn btn-warning btn-sm" onclick="desactivarProducto(${p.id_producto})">Desactivar</button>` : ''}
       </td>
     </tr>
   `).join("");
@@ -2392,6 +2393,14 @@ async function loadProveedores() {
       </tr>
     `).join("") || '<tr><td colspan="6" class="text-muted" style="text-align:center;padding:24px">Sin proveedores.</td></tr>';
   } catch (err) { showToast("Error: " + err.message, "error"); }
+}
+
+async function desactivarProducto(id) {
+  try {
+    const res = await API.toggleProducto(id);
+    showToast(res.message, "info");
+    loadInventario();
+  } catch (err) { showToast(err.message, "error"); }
 }
 
 async function reactivarProducto(id) {
