@@ -281,16 +281,26 @@ router.post("/:id/imagen", verificarToken, soloAdmin, upload.single("imagen"), a
   if (!req.file) return res.status(400).json({ error: "No se recibió imagen." });
   try {
     const fs = require("fs");
-    const filePath = req.file.path;
-    const buffer = fs.readFileSync(filePath);
-    const base64 = `data:${req.file.mimetype};base64,${buffer.toString("base64")}`;
-    await db.query("UPDATE productos SET imagen=? WHERE id_producto=?", [base64, req.params.id]);
-    fs.unlinkSync(filePath);
+    const buffer = fs.readFileSync(req.file.path);
+    const base64 = buffer.toString("base64");
+    await db.query("UPDATE productos SET imagen=?, imagen_tipo=? WHERE id_producto=?", [base64, req.file.mimetype, req.params.id]);
+    try { fs.unlinkSync(req.file.path); } catch (_) {}
     res.json({ mensaje: "Imagen subida." });
   } catch (err) {
     console.error("Error imagen:", err.message);
-    res.status(500).json({ error: "Error guardando imagen." });
+    res.status(500).json({ error: "Error guardando imagen: " + err.message });
   }
+});
+
+router.get("/:id/imagen", async (req, res) => {
+  try {
+    const [[prod]] = await db.query("SELECT imagen, imagen_tipo FROM productos WHERE id_producto=?", [req.params.id]);
+    if (!prod || !prod.imagen) return res.status(404).json({ error: "Sin imagen." });
+    const img = Buffer.from(prod.imagen, "base64");
+    res.setHeader("Content-Type", prod.imagen_tipo || "image/jpeg");
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    res.send(img);
+  } catch (err) { res.status(500).json({ error: "Error." }); }
 });
 
 // ------------------------------------------------------------

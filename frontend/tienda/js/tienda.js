@@ -162,7 +162,7 @@ function limpiarFiltros() {
 // ============================================================
 function tarjetaHTML(p) {
   const img = p.imagen
-    ? `<img src="${p.imagen}" alt="${p.nombre}" loading="lazy">`
+    ? `<img src="/api/productos/${p.id_producto}/imagen" alt="${p.nombre}" loading="lazy">`
     : `👕`;
   return `
     <div class="tarjeta-producto" onclick="verProducto(${p.id_producto})">
@@ -223,7 +223,7 @@ async function verProducto(id) {
 
 function renderizarDetalle(p) {
   const imgPrincipal = p.imagen
-    ? `<img src="${p.imagen}" alt="${p.nombre}" id="img-principal-grande">`
+    ? `<img src="/api/productos/${p.id_producto}/imagen" alt="${p.nombre}" id="img-principal-grande">`
     : `<span style="font-size:100px">👕</span>`;
 
   // Galería adicional
