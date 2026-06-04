@@ -1238,12 +1238,10 @@ function abrirModalStock(id) {
 
   const modoSimple = document.getElementById("stock-modo-simple");
   const modoTallas = document.getElementById("stock-modo-tallas");
-  const simpleInfo = document.getElementById("stock-modo-simple-info");
 
   if (esCam) {
     modoSimple.style.display = "none";
     modoTallas.style.display = "block";
-    simpleInfo.style.display = "none";
     document.getElementById("modal-stock-titulo").textContent = "Comprar " + (p?.nombre || "") + " por talla";
     
     // Headers del grid
@@ -1277,7 +1275,6 @@ function abrirModalStock(id) {
   } else {
     modoSimple.style.display = "block";
     modoTallas.style.display = "none";
-    simpleInfo.style.display = "block";
     document.getElementById("modal-stock-titulo").textContent = "Agregar Stock" + (p ? " - " + p.nombre : "");
     document.getElementById("stock-cantidad").value = "";
     document.getElementById("stock-precio-unitario").value = "";
